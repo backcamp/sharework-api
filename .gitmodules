@@ -1,0 +1,3 @@
+[submodule "sharework-profiles"]
+	path = sharework-profiles
+	url = git@github.com:backcamp/sharework-profiles.git
