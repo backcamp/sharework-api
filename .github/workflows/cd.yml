@@ -45,6 +45,7 @@ jobs:
       - name: Build and Push to ghcr
         uses: docker/build-push-action@v3
         with:
+          file: ./Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ env.tag }}
