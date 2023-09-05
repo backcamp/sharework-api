@@ -35,6 +35,13 @@ jobs:
         run: ./gradlew build
         shell: bash
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.ACTIONS_TOKEN }}
+
       - name: Build and Push to ghcr
         uses: docker/build-push-action@v3
         with:
