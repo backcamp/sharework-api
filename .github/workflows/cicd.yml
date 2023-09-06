@@ -1,4 +1,4 @@
-name: cd
+name: Release and Deploy
 
 on:
   push:
@@ -50,3 +50,15 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ env.tag }}
             ghcr.io/${{ github.repository }}:latest
+
+      - name: Deploy to test server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script: |
+            docker image prune -f
+            docker pull ghcr.io/${{ github.repository }}:latest
+            docker-compose up -d
+            docker ps
