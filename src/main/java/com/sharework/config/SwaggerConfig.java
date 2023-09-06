@@ -19,6 +19,6 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         String description = "ShareWork팀 입니다.";
-        return new ApiInfoBuilder().title("SWAGGER TEST").description(description).version("0.0.5").build();
+        return new ApiInfoBuilder().title("SWAGGER TEST").description(description).version("1.0").build();
     }
 }
