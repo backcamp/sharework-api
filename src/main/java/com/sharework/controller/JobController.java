@@ -136,10 +136,10 @@ public class JobController {
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobHiredInfo.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
-    @GetMapping(value = "hired/info/{jobId}/approve/{userId}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = "hired/info/{jobId}/approve/{applicationId}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "일감 정보 확인")
-    public ResponseEntity getJobHIredInfo(@PathVariable long jobId, @PathVariable long userId){
-        return jobService.getJobHiredInfo(jobId, userId);
+    public ResponseEntity getJobHIredInfo(@PathVariable long jobId, @PathVariable long applicationId){
+        return jobService.getJobHiredInfo(jobId, applicationId);
     }
 
 }

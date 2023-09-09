@@ -602,7 +602,7 @@ public class JobService {
         return response;
     }
 
-    public ResponseEntity getJobHiredInfo(long jobId, long userId) {
+    public ResponseEntity getJobHiredInfo(long jobId, long applicationId) {
         ResponseEntity response = null;
         Response error = null;
 
@@ -617,7 +617,8 @@ public class JobService {
 
         Job job = jobOptional.get();
         List<JobTag> jobTagList = jobTagDao.findByJobId(job.getId());
-        User worker = userDao.findById(userId).get();
+        long workerId = applicationDao.findById(applicationId).get().getUserId();
+        User worker = userDao.findById(workerId).get();
         User giver = userDao.findById(job.getUserId()).get();
 
         JobHiredInfo jobHiredInfo = JobHiredInfo.builder()
