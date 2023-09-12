@@ -3,8 +3,6 @@ package com.sharework.model;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
-import com.sharework.common.DeleteYnEnum;
 import lombok.*;
 import org.hibernate.annotations.*;
 import org.springframework.util.Assert;
