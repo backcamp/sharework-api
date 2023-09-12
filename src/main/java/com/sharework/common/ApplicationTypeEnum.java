@@ -9,6 +9,6 @@ public enum ApplicationTypeEnum {
     REJECTED,  // 채택 됐지만 업주로부터 채택 취소당함
     FAILED,  // 채택 실패됨
     NO_SHOW,  // 채택 됐지만 일 시작 안함
-    COMPLETED, // 알바완료
+    COMPLETED, // 알바완료r
     COMPLETED_REVIEWED;//댓글작성완료
 }

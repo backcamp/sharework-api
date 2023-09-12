@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -278,11 +279,12 @@ public class UserService {
 
         long userId = identification.getHeadertoken(accessToken);
 
-        Optional<User> user = userDao.findByIdAndDeleteYn(userId, "N");
+        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
 
-        user.get().setName(request.getName());
-        user.get().setComment(request.getComment());
-        userDao.save(user.get());
+        if(request.getName() != null)
+        user.setName(request.getName());
+        if(request.getComment() != null)
+        user.setComment(request.getComment());
 
         BasicMeta meta = new BasicMeta(true, "정보가 수정되었습니다.");
         SuccessResponse successResponse = new SuccessResponse(meta);
