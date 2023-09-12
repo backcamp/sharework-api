@@ -20,20 +20,18 @@ public class JobHiredInfoPayload {
     private LocalDateTime endAt;
     private String address;
     private String addressDetail;
-    private long personnel;
     private String contents;
     private List<String> jobTagList;
     private WorkerNameAndPhoneNumber workerNameAndPhoneNumber;
     private GiverNameAndPhoneNumber giverNameAndPhoneNumber;
 
     @Builder
-    public JobHiredInfoPayload(String title, LocalDateTime startAt, LocalDateTime endAt, String address, String addressDetail, long personnel, String contents, List<String> jobTagList, WorkerNameAndPhoneNumber workerNameAndPhoneNumber, GiverNameAndPhoneNumber giverNameAndPhoneNumber) {
+    public JobHiredInfoPayload(String title, LocalDateTime startAt, LocalDateTime endAt, String address, String addressDetail, String contents, List<String> jobTagList, WorkerNameAndPhoneNumber workerNameAndPhoneNumber, GiverNameAndPhoneNumber giverNameAndPhoneNumber) {
         this.title = title;
         this.startAt = startAt;
         this.endAt = endAt;
         this.address = address;
         this.addressDetail = addressDetail;
-        this.personnel = personnel;
         this.contents = contents;
         this.jobTagList = jobTagList;
         this.workerNameAndPhoneNumber = workerNameAndPhoneNumber;
@@ -47,7 +45,6 @@ public class JobHiredInfoPayload {
                 .endAt(job.getEndAt())
                 .address(job.getAddress())
                 .addressDetail(job.getAddressDetail())
-                .personnel(job.getPersonnel())
                 .contents(job.getContents())
                 .jobTagList(jobTagList.stream().map(JobTag::getContents).collect(Collectors.toList()))
                 .workerNameAndPhoneNumber(WorkerNameAndPhoneNumber.builder()
