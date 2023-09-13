@@ -282,9 +282,9 @@ public class UserService {
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
 
         if(request.getName() != null)
-        user.setName(request.getName());
+           user.setName(request.getName());
         if(request.getComment() != null)
-        user.setComment(request.getComment());
+           user.setComment(request.getComment());
 
         BasicMeta meta = new BasicMeta(true, "정보가 수정되었습니다.");
         SuccessResponse successResponse = new SuccessResponse(meta);
