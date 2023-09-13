@@ -5,8 +5,10 @@ import com.sharework.model.JobTag;
 import com.sharework.response.model.Pagination;
 import com.sharework.response.model.meta.BasicMeta;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import javax.persistence.Column;
 import javax.persistence.Id;
 import java.time.LocalDateTime;
@@ -57,7 +59,7 @@ public class APICompletedList {
 
         public Integer applicationCount;
 
-        public Groupstatus groupstatus;
+        public CompletedGroupstatus completedGroupstatus;
 
         public long totalPay;
 
@@ -66,17 +68,23 @@ public class APICompletedList {
 
         public List<JobTag> tags;
 
-        public CompletedJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, Integer applicationCount, Groupstatus groupstatus, String status,long totalPay,List<JobTag> tags) {
+        public CompletedJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, Integer applicationCount, CompletedGroupstatus completedGroupstatus, String status, long totalPay, List<JobTag> tags) {
             this.id = id;
             this.title = title;
             this.startAt = startAt;
             this.applicationCount = applicationCount;
-            this.groupstatus = groupstatus;
+            this.completedGroupstatus = completedGroupstatus;
             this.endAt = endAt;
             this.totalPay = totalPay;
             this.status = status;
             this.tags = tags;
         }
+    }
+    
+    @AllArgsConstructor
+    public static class CompletedGroupstatus {
+        public String name;
+        public Integer count;
     }
 }
 

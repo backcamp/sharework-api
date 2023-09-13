@@ -27,11 +27,8 @@ public interface ApplicationDao extends JpaRepository<Application, Long> {
     @Query(value = "select * from application where job_id = :job_id and status = :status", nativeQuery = true)
     Page<Application> findByJobIdAndApplied(@Param("job_id") long JobId, @Param("status") String status, Pageable pageable);
 
-    @Query(value = "SELECT status name,count(status) count FROM application WHERE job_id = :job_id GROUP BY status  having  status in('APPLIED','HIRED','HIRED_APPROVED','HIRED_REQUEST','NO_SHOW') ORDER BY COUNT(status) DESC, CASE WHEN status = 'HIRED_APPROVED' THEN 1 WHEN status = 'HIRED_REQUEST' THEN 2 WHEN status = 'HIRED' THEN 3 WHEN status = 'APPLIED' THEN 4 WHEN status = 'NO_SHOW' THEN 5 ELSE 6 end limit 1", nativeQuery = true)
+    @Query(value = "SELECT status name,count(status) count FROM application WHERE job_id = :job_id GROUP BY status  having  status in('APPLIED','HIRED','HIRED_APPROVED','HIRED_REQUEST') ORDER BY COUNT(status) DESC, CASE WHEN status = 'HIRED_APPROVED' THEN 1 WHEN status = 'HIRED_REQUEST' THEN 2 WHEN status = 'HIRED' THEN 3 WHEN status = 'APPLIED' THEN 4 ELSE 5 end limit 1", nativeQuery = true)
     Groupstatus processingGroupStatus(@Param("job_id") long JobId);
-
-    @Query(value = "SELECT status name,count(status) count FROM application WHERE job_id = :job_id GROUP BY status  having  status in('COMPLETED','COMPLETED_REVIEWED','NO_SHOW') ORDER BY COUNT(status) DESC, CASE WHEN status = 'COMPLETED_REVIEWED' THEN 1 WHEN status = 'COMPLETED' THEN 2 WHEN status = 'NO_SHOW' THEN 3 ELSE 4 end limit 1", nativeQuery = true)
-    Groupstatus completedGroupStatus(@Param("job_id") long JobId);
 
     Page<Application> getByUserIdAndStatusContaining(long userId, String status, Pageable pageable);
 
@@ -47,6 +44,8 @@ public interface ApplicationDao extends JpaRepository<Application, Long> {
     int countByUserIdAndStatus(long userId, String status);
 
     int countByJobIdAndStatus(long jobId, String status);
+
+    int countByJobIdAndStatusStartingWith(long jobId, String status);
 
     int countByJobIdAndStatusContaining(long jobId, String status);
 

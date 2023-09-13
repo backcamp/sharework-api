@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import com.sharework.response.model.job.APICompletedList.CompletedGroupstatus;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -528,8 +529,10 @@ public class JobService {
             String applicationStatus = "";
             int applicationCount = 0;
 
-            //가장 많은 application이며 가장 높은 status 우선순위로 나옴.
-            Groupstatus groupstatus = applicationDao.completedGroupStatus(job.getId());
+            if (job.getStatus().equals(JobTypeEnum.COMPLETED.name())) {
+                applicationStatus = ApplicationTypeEnum.COMPLETED.name();
+                applicationCount = applicationDao.countByJobIdAndStatusStartingWith(job.getId(), "C");
+            }
 
             // payment 계산
             int payment = 0;
@@ -538,11 +541,13 @@ public class JobService {
             for (ApplicationTotalPayment app : applicationTotalPaymentList)
                 payment += app.getTotalPayment();
 
+
             //tags
             List<JobTag> tags = jobTagDao.findByJobId(job.getId());
+            CompletedGroupstatus completedGroupstatus = new CompletedGroupstatus(applicationStatus, applicationCount);
 
             Optional<CompletedJob> responseJob = Optional.of(new CompletedJob(
-                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), applicationCount, groupstatus, job.getStatus(), payment, tags));
+                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), applicationCount, completedGroupstatus, job.getStatus(), payment, tags));
 
             responseJobs.add(responseJob.get());
         }
