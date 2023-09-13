@@ -14,7 +14,6 @@ import com.sharework.response.model.*;
 import com.sharework.response.model.job.*;
 import com.sharework.response.model.job.APICompletedList.CompletedJob;
 import com.sharework.response.model.job.APICompletedList.JobCompletedPayload;
-import com.sharework.response.model.job.APIProceedingList.Groupstatus;
 import com.sharework.response.model.job.APIProceedingList.JobProceedingPayload;
 import com.sharework.response.model.job.APIProceedingList.ProceedingJob;
 import com.sharework.response.model.meta.BasicMeta;
@@ -484,16 +483,9 @@ public class JobService {
             // status 별로 계산
             String applicationStatus = "";
             int applicationCount = 0;
-            if (job.getStatus().equals(JobTypeEnum.OPEN.name())) {
-                applicationStatus = ApplicationTypeEnum.APPLIED.name();
-                applicationCount = applicationDao.countByJobIdAndStatus(job.getId(), applicationStatus);
-            } else if (job.getStatus().equals(JobTypeEnum.CLOSED.name())) {
-                applicationStatus = ApplicationTypeEnum.HIRED.name();
-                applicationCount = applicationDao.countByJobIdAndStatus(job.getId(), applicationStatus);
-            } else if (job.getStatus().equals(JobTypeEnum.STARTED.name())) {
-                applicationStatus = ApplicationTypeEnum.HIRED_APPROVED.name();
-                applicationCount = applicationDao.countByJobIdAndStatus(job.getId(), applicationStatus);
-            }
+
+            //가장 많은 application이며 가장 높은 status 우선순위로 나옴.
+            Groupstatus groupstatus = applicationDao.processingGroupStatus(job.getId());
 
             // payment 계산
             int payment = 0;
@@ -504,12 +496,11 @@ public class JobService {
 
             //tags
             List<JobTag> tags = jobTagDao.findByJobId(job.getId());
-            Groupstatus groupstatus = new Groupstatus(applicationStatus, applicationCount);
 
-            Optional<ProceedingJob> responseJob = Optional.of(new ProceedingJob(
-                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), applicationCount, groupstatus, job.getStatus(), payment, tags));
+            ProceedingJob responseJob = Optional.of(new ProceedingJob(
+                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), applicationCount, groupstatus, job.getStatus(), payment, tags)).orElseThrow();
 
-            responseJobs.add(responseJob.get());
+            responseJobs.add(responseJob);
         }
 
         Pagination pagination = new Pagination(jobs.isLast(), page, jobs.getTotalPages());
@@ -536,11 +527,9 @@ public class JobService {
         for (Job job : jobs) {
             String applicationStatus = "";
             int applicationCount = 0;
-            if (job.getStatus().equals(JobTypeEnum.COMPLETED.name())) {
-                applicationStatus = ApplicationTypeEnum.COMPLETED.name();
-                applicationCount = applicationDao.countByJobIdAndStatus(job.getId(), applicationStatus);
-            }
 
+            //가장 많은 application이며 가장 높은 status 우선순위로 나옴.
+            Groupstatus groupstatus = applicationDao.completedGroupStatus(job.getId());
 
             // payment 계산
             int payment = 0;
@@ -549,10 +538,8 @@ public class JobService {
             for (ApplicationTotalPayment app : applicationTotalPaymentList)
                 payment += app.getTotalPayment();
 
-
             //tags
             List<JobTag> tags = jobTagDao.findByJobId(job.getId());
-            Groupstatus groupstatus = new Groupstatus(applicationStatus, applicationCount);
 
             Optional<CompletedJob> responseJob = Optional.of(new CompletedJob(
                     job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), applicationCount, groupstatus, job.getStatus(), payment, tags));

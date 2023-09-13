@@ -5,7 +5,6 @@ import com.sharework.model.JobTag;
 import com.sharework.response.model.Pagination;
 import com.sharework.response.model.meta.BasicMeta;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -80,12 +79,6 @@ public class APIProceedingList {
             this.totalPay = totalPay;
             this.tags = tags;
         }
-    }
-
-    @AllArgsConstructor
-    public static class Groupstatus {
-        public String name;
-        public Integer count;
     }
 }
 
