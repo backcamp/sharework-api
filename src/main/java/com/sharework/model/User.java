@@ -1,13 +1,10 @@
 package com.sharework.model;
 
 import javax.persistence.*;
-
-import com.sharework.common.DeleteYnEnum;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.*;
 import org.springframework.util.Assert;
 import com.sun.istack.NotNull;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;

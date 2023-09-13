@@ -278,11 +278,12 @@ public class UserService {
 
         long userId = identification.getHeadertoken(accessToken);
 
-        Optional<User> user = userDao.findByIdAndDeleteYn(userId, "N");
+        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
 
-        user.get().setName(request.getName());
-        user.get().setComment(request.getComment());
-        userDao.save(user.get());
+        if(request.getName() != null)
+           user.setName(request.getName());
+        if(request.getComment() != null)
+           user.setComment(request.getComment());
 
         BasicMeta meta = new BasicMeta(true, "정보가 수정되었습니다.");
         SuccessResponse successResponse = new SuccessResponse(meta);
