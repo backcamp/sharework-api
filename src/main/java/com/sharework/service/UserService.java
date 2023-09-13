@@ -214,7 +214,7 @@ public class UserService {
         return response;
     }
 
-    public ResponseEntity checkNickname(String nickName) {
+    public ResponseEntity checkNickname(String nickname) {
 
         ResponseEntity response = null;
         ErrorResponse error = null;
@@ -222,7 +222,7 @@ public class UserService {
         BasicMeta meta;
 
 
-        if (!Pattern.matches("^[가-힣a-zA-Z0-9]{1,6}$", nickName)) {
+        if (!Pattern.matches("^[가-힣a-zA-Z0-9]{1,6}$", nickname)) {
             errorMsg = "사용 불가능한 닉네임입니다.";
             meta = new BasicMeta(false, errorMsg);
             error = new ErrorResponse(meta);
@@ -230,7 +230,7 @@ public class UserService {
             return response;
         }
 
-        if (userDao.existsByNameAndDeleteYn(nickName, "N")) {
+        if (userDao.existsByNameAndDeleteYn(nickname, "N")) {
             errorMsg = "닉네임이 존재합니다.";
             meta = new BasicMeta(false, errorMsg);
             error = new ErrorResponse(meta);
