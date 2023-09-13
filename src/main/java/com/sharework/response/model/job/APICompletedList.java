@@ -84,7 +84,7 @@ public class APICompletedList {
     @AllArgsConstructor
     public static class CompletedGroupstatus {
         public String name;
-        public Integer count;
+        public int count;
     }
 }
 
