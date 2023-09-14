@@ -312,10 +312,10 @@ public class UserService {
                 jobIdList.add(job.getId());
             });
 
-            jobTagRankList = jobTagDao.findByJobIdCountContents(jobIdList);
+            jobTagRankList = jobTagDao.findByJobIdCountContentsId(jobIdList);
 
             jobTagRankList.forEach(jobTagRank -> {
-                tagRankList.add(new TagRank(new JobTagList(jobTagRank.getContents()), jobTagRank.getCount()));
+                tagRankList.add(new TagRank(new JobTagList(jobTagRank.getId(), jobTagRank.getContents()), jobTagRank.getCount()));
             });
         } else {
             List<Application> applicationList = applicationDao.getByUserIdAndStatus(userId, ApplicationTypeEnum.COMPLETED.name());
@@ -324,11 +324,11 @@ public class UserService {
                 jobIdList.add(application.getJobId());
             });
 
-            jobTagRankList = jobTagDao.findByJobIdCountContents(jobIdList);
+            jobTagRankList = jobTagDao.findByJobIdCountContentsId(jobIdList);
 
             jobTagRankList.forEach(jobTagRank -> {
                 int hour = applicationDao.countByUserIdAndTagContents(userId, jobTagRank.getContents());
-                tagRankList.add(new TagRank(new JobTagList(jobTagRank.getContents()), jobTagRank.getCount(), hour));
+                tagRankList.add(new TagRank(new JobTagList(jobTagRank.getId(), jobTagRank.getContents()), jobTagRank.getCount(), hour));
             });
         }
 
