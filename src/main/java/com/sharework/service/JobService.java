@@ -474,16 +474,12 @@ public class JobService {
         List<String> status = new ArrayList<>();
         status.add(JobTypeEnum.OPEN.name());
         status.add(JobTypeEnum.STARTED.name());
-        status.add(JobTypeEnum.CLOSED.name());
 
         PageRequest pageRequest = PageRequest.of(page, PAGE_SIZE);
         Page<Job> jobs = jobDao.findByUserIdAndStatusIn(userId, status, pageRequest);
         List<ProceedingJob> responseJobs = new ArrayList<>();
 
         for (Job job : jobs) {
-            // status 별로 계산
-            String applicationStatus = "";
-            int applicationCount = 0;
 
             //가장 많은 application이며 가장 높은 status 우선순위로 나옴.
             Groupstatus groupstatus = applicationDao.processingGroupStatus(job.getId());
@@ -499,7 +495,7 @@ public class JobService {
             List<JobTag> tags = jobTagDao.findByJobId(job.getId());
 
             ProceedingJob responseJob = Optional.of(new ProceedingJob(
-                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), applicationCount, groupstatus, job.getStatus(), payment, tags)).orElseThrow();
+                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), groupstatus, job.getStatus(), payment, tags)).orElseThrow();
 
             responseJobs.add(responseJob);
         }
@@ -529,10 +525,8 @@ public class JobService {
             String applicationStatus = "";
             int applicationCount = 0;
 
-            if (job.getStatus().equals(JobTypeEnum.COMPLETED.name())) {
-                applicationStatus = ApplicationTypeEnum.COMPLETED.name();
-                applicationCount = applicationDao.countByJobIdAndStatusStartingWith(job.getId(), "C");
-            }
+            applicationStatus = ApplicationTypeEnum.COMPLETED.name();
+            applicationCount = applicationDao.countByJobIdAndStatusStartingWith(job.getId(), "C");
 
             // payment 계산
             int payment = 0;
@@ -541,13 +535,12 @@ public class JobService {
             for (ApplicationTotalPayment app : applicationTotalPaymentList)
                 payment += app.getTotalPayment();
 
-
             //tags
             List<JobTag> tags = jobTagDao.findByJobId(job.getId());
             CompletedGroupstatus completedGroupstatus = new CompletedGroupstatus(applicationStatus, applicationCount);
 
             Optional<CompletedJob> responseJob = Optional.of(new CompletedJob(
-                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), applicationCount, completedGroupstatus, job.getStatus(), payment, tags));
+                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), completedGroupstatus, job.getStatus(), payment, tags));
 
             responseJobs.add(responseJob.get());
         }

@@ -58,9 +58,6 @@ public class APIProceedingList {
 
         public long totalPay;
 
-        @Column(name = "applicantNum")
-        public Integer applicationCount;
-
         public Groupstatus groupstatus;
 
         @Column(name = "status")
@@ -68,12 +65,11 @@ public class APIProceedingList {
 
         public List<JobTag> tags;
 
-        public ProceedingJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, Integer applicationCount, Groupstatus groupstatus, String status, long totalPay, List<JobTag> tags) {
+        public ProceedingJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, Groupstatus groupstatus, String status, long totalPay, List<JobTag> tags) {
             this.id = id;
             this.title = title;
             this.startAt = startAt;
             this.endAt = endAt;
-            this.applicationCount = applicationCount;
             this.groupstatus = groupstatus;
             this.status = status;
             this.totalPay = totalPay;
