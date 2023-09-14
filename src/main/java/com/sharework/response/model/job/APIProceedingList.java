@@ -58,19 +58,19 @@ public class APIProceedingList {
 
         public long totalPay;
 
-        public Groupstatus groupstatus;
+        public GroupStatus groupStatus;
 
         @Column(name = "status")
         public String status;
 
         public List<JobTag> tags;
 
-        public ProceedingJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, Groupstatus groupstatus, String status, long totalPay, List<JobTag> tags) {
+        public ProceedingJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, GroupStatus groupStatus, String status, long totalPay, List<JobTag> tags) {
             this.id = id;
             this.title = title;
             this.startAt = startAt;
             this.endAt = endAt;
-            this.groupstatus = groupstatus;
+            this.groupStatus = groupStatus;
             this.status = status;
             this.totalPay = totalPay;
             this.tags = tags;

@@ -482,7 +482,7 @@ public class JobService {
         for (Job job : jobs) {
 
             //가장 많은 application이며 가장 높은 status 우선순위로 나옴.
-            Groupstatus groupstatus = applicationDao.processingGroupStatus(job.getId());
+            GroupStatus groupstatus = applicationDao.processingGroupStatus(job.getId());
 
             // payment 계산
             int payment = 0;
@@ -537,10 +537,10 @@ public class JobService {
 
             //tags
             List<JobTag> tags = jobTagDao.findByJobId(job.getId());
-            CompletedGroupstatus completedGroupstatus = new CompletedGroupstatus(applicationStatus, applicationCount);
+            CompletedGroupstatus groupStatus = new CompletedGroupstatus(applicationStatus, applicationCount);
 
             Optional<CompletedJob> responseJob = Optional.of(new CompletedJob(
-                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), completedGroupstatus, job.getStatus(), payment, tags));
+                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), groupStatus, job.getStatus(), payment, tags));
 
             responseJobs.add(responseJob.get());
         }

@@ -1,6 +1,6 @@
 package com.sharework.response.model.job;
 
-public interface Groupstatus {
+public interface GroupStatus {
 
      String getName();
      int getCount();

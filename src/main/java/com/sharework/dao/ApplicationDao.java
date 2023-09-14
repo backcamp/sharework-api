@@ -1,7 +1,7 @@
 package com.sharework.dao;
 
 import com.sharework.model.Application;
-import com.sharework.response.model.job.Groupstatus;
+import com.sharework.response.model.job.GroupStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,7 +28,7 @@ public interface ApplicationDao extends JpaRepository<Application, Long> {
     Page<Application> findByJobIdAndApplied(@Param("job_id") long JobId, @Param("status") String status, Pageable pageable);
 
     @Query(value = "SELECT status name,count(status) count FROM application WHERE job_id = :job_id GROUP BY status  having  status in('APPLIED','HIRED','HIRED_APPROVED','HIRED_REQUEST') ORDER BY COUNT(status) DESC, CASE WHEN status = 'HIRED_APPROVED' THEN 1 WHEN status = 'HIRED_REQUEST' THEN 2 WHEN status = 'HIRED' THEN 3 WHEN status = 'APPLIED' THEN 4 ELSE 5 end limit 1", nativeQuery = true)
-    Groupstatus processingGroupStatus(@Param("job_id") long JobId);
+    GroupStatus processingGroupStatus(@Param("job_id") long JobId);
 
     Page<Application> getByUserIdAndStatusContaining(long userId, String status, Pageable pageable);
 
