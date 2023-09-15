@@ -58,7 +58,7 @@ public class APIProceedingList {
 
         public long totalPay;
 
-        public GroupStatus groupStatus;
+        public Groupstatus groupstatus;
 
         @Column(name = "status")
         public String status;
