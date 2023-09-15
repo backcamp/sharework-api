@@ -284,6 +284,7 @@ public class UserService {
            user.setName(request.getName());
         if(request.getComment() != null)
            user.setComment(request.getComment());
+        userDao.save(user);
 
         BasicMeta meta = new BasicMeta(true, "정보가 수정되었습니다.");
         SuccessResponse successResponse = new SuccessResponse(meta);
