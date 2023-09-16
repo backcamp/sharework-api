@@ -14,6 +14,7 @@ import com.sharework.response.model.*;
 import com.sharework.response.model.job.*;
 import com.sharework.response.model.job.APICompletedList.CompletedJob;
 import com.sharework.response.model.job.APICompletedList.JobCompletedPayload;
+import com.sharework.response.model.job.APIPreviousJobs.JobPreviousPayload;
 import com.sharework.response.model.job.APIProceedingList.Groupstatus;
 import com.sharework.response.model.job.APIProceedingList.JobProceedingPayload;
 import com.sharework.response.model.job.APIProceedingList.ProceedingJob;
@@ -458,7 +459,7 @@ public class JobService {
             responseJobs.add(responseJob.get());
         }
 
-        APIPreviousJobs.Payload payload = new APIPreviousJobs.Payload(responseJobs);
+        JobPreviousPayload payload = new JobPreviousPayload(responseJobs);
         BasicMeta meta = new BasicMeta(true, "");
 
         response = new ResponseEntity<>(new APIPreviousJobs(payload, meta), HttpStatus.OK);

@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
-import javax.persistence.Id;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,22 +14,22 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class APIPreviousJobs {
-    public APIPreviousJobs(Payload payload, BasicMeta meta) {
+    public APIPreviousJobs(JobPreviousPayload payload, BasicMeta meta) {
         this.payload = payload;
         this.meta = meta;
     }
 
     @ApiModelProperty(value = "payload", position = 1)
-    public Payload payload;
+    public JobPreviousPayload payload;
 
     @ApiModelProperty(value = "meta", position = 2)
     public BasicMeta meta;
 
-    public static class Payload {
+    public static class JobPreviousPayload {
         @ApiModelProperty(value = "jobs")
         public List<Job> jobs;
 
-        public Payload(List<Job> jobs) {
+        public JobPreviousPayload(List<Job> jobs) {
             this.jobs = jobs;
         }
     }
