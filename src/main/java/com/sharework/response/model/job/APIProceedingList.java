@@ -58,7 +58,7 @@ public class APIProceedingList {
 
         public long totalPay;
 
-        public Groupstatus groupstatus;
+        public GroupStatus groupstatus;
 
         @Column(name = "status")
         public String status;
@@ -70,7 +70,7 @@ public class APIProceedingList {
             this.title = title;
             this.startAt = startAt;
             this.endAt = endAt;
-            this.groupStatus = groupStatus;
+            this.groupstatus = groupStatus;
             this.status = status;
             this.totalPay = totalPay;
             this.tags = tags;
