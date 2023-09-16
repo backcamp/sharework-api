@@ -6,6 +6,7 @@ import lombok.ToString;
 
 public interface JobTagRank {
     String getContents();
+    Long getId();
 
     int getCount();
 
