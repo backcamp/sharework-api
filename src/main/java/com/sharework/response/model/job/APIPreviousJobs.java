@@ -66,8 +66,10 @@ public class APIPreviousJobs {
         @Column(name = "jobBenefits")
         public List<JobBenefit> jobBenefits;
 
+        public List<String> checklist;
+
         public Job(String title, LocalDateTime startAt, LocalDateTime endAt, String payType, Integer pay, String contents, LocalDateTime createdAt, double lat, double lng,
-                   String addressDetail, List<JobBenefit> jobBenefits) {
+                   String addressDetail, List<JobBenefit> jobBenefits, List<String> checklist) {
             this.title = title;
             this.startAt = startAt;
             this.endAt = endAt;
@@ -79,6 +81,7 @@ public class APIPreviousJobs {
             this.lng = lng;
             this.addressDetail = addressDetail;
             this.jobBenefits = jobBenefits;
+            this.checklist = checklist;
         }
     }
 

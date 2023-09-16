@@ -20,6 +20,7 @@ import com.sharework.response.model.job.APIProceedingList.JobProceedingPayload;
 import com.sharework.response.model.job.APIProceedingList.ProceedingJob;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -452,9 +453,16 @@ public class JobService {
                 responseBenefits.add(new APIPreviousJobs.JobBenefit(baseJobBenefit.get().getContents()));
             }
 
+            List<JobCheckList> checklist = jobCheckListDao.findByJobId(job.getId());
+            // List<String> checklistContents = checklist.stream().map(JobCheckList::getContents).collect(Collectors.toList());
+            List<String> checklistContents = new ArrayList<>();
+            for (JobCheckList jobCheckList : checklist) {
+                checklistContents.add(jobCheckList.getContents());
+            }
+
             Optional<APIPreviousJobs.Job> responseJob = Optional.of(new APIPreviousJobs.Job(
                     job.getTitle(), job.getStartAt(), job.getEndAt(), job.getPayType(), job.getPay(), job.getContents(),
-                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), responseBenefits));
+                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), responseBenefits, checklistContents));
 
             responseJobs.add(responseJob.get());
         }
