@@ -57,7 +57,7 @@ public class APICompletedList {
         @Column(name = "end_at")
         public LocalDateTime endAt;
 
-        public CompletedGroupstatus groupStatus;
+        public CompletedGroupstatus groupstatus;
 
         public long totalPay;
 
@@ -66,11 +66,11 @@ public class APICompletedList {
 
         public List<JobTag> tags;
 
-        public CompletedJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, CompletedGroupstatus groupStatus, String status, long totalPay, List<JobTag> tags) {
+        public CompletedJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, CompletedGroupstatus groupstatus, String status, long totalPay, List<JobTag> tags) {
             this.id = id;
             this.title = title;
             this.startAt = startAt;
-            this.groupStatus = groupStatus;
+            this.groupstatus = groupstatus;
             this.endAt = endAt;
             this.totalPay = totalPay;
             this.status = status;
