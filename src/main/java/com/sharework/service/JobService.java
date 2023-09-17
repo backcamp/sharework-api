@@ -15,12 +15,11 @@ import com.sharework.response.model.job.*;
 import com.sharework.response.model.job.APICompletedList.CompletedJob;
 import com.sharework.response.model.job.APICompletedList.JobCompletedPayload;
 import com.sharework.response.model.job.APIPreviousJobs.JobPreviousPayload;
-import com.sharework.response.model.job.APIProceedingList.Groupstatus;
 import com.sharework.response.model.job.APIProceedingList.JobProceedingPayload;
 import com.sharework.response.model.job.APIProceedingList.ProceedingJob;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
-import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
