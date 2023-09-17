@@ -444,11 +444,11 @@ public class JobService {
         List<Job> jobs = jobDao.findTop10ByUserIdOrderByIdDesc(userId); // 상위 10개 공고
 
         for (Job job : jobs) {
-            List<JobCheckList> checklist = jobCheckListDao.findByJobId(job.getId());
+            List<JobCheckList> jobChecklist = jobCheckListDao.findByJobId(job.getId());
             // List<String> checklistContents = checklist.stream().map(JobCheckList::getContents).collect(Collectors.toList());
-            List<String> checklistContents = new ArrayList<>();
-            for (JobCheckList jobCheckList : checklist) {
-                checklistContents.add(jobCheckList.getContents());
+            List<String> jobChecklistContents = new ArrayList<>();
+            for (JobCheckList checklist : jobChecklist) {
+                jobChecklistContents.add(checklist.getContents());
             }
 
             List<JobTag> jobTag = jobTagDao.findByJobId(job.getId());
@@ -459,7 +459,7 @@ public class JobService {
 
             Optional<APIPreviousJobs.Job> responseJob = Optional.of(new APIPreviousJobs.Job(
                     job.getTitle(), job.getStartAt(), job.getEndAt(), job.getPayType(), job.getPay(), job.getContents(),
-                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), checklistContents, jobTagContents));
+                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), jobChecklistContents, jobTagContents));
 
             responseJobs.add(responseJob.get());
         }
