@@ -451,9 +451,15 @@ public class JobService {
                 checklistContents.add(jobCheckList.getContents());
             }
 
+            List<JobTag> jobTag = jobTagDao.findByJobId(job.getId());
+            List<String> jobTagContents = new ArrayList<>();
+            for (JobTag tag : jobTag) {
+                jobTagContents.add(tag.getContents());
+            }
+
             Optional<APIPreviousJobs.Job> responseJob = Optional.of(new APIPreviousJobs.Job(
                     job.getTitle(), job.getStartAt(), job.getEndAt(), job.getPayType(), job.getPay(), job.getContents(),
-                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), checklistContents));
+                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), checklistContents, jobTagContents));
 
             responseJobs.add(responseJob.get());
         }
