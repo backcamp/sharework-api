@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -271,6 +272,7 @@ public class UserService {
         return response;
     }
 
+    @Transactional
     public ResponseEntity updateUser(String accessToken, APIUpdateUser request) {
 
         ResponseEntity response = null;
