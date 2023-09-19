@@ -10,24 +10,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class APIGetUser {
-    public APIGetUser(Payload payload, BasicMeta meta) {
+    public APIGetUser(APIGetUserPayload payload, BasicMeta meta) {
         this.payload = payload;
         this.meta = meta;
     }
 
     @ApiModelProperty(value = "payload", position = 1)
-    public Payload payload;
+    public APIGetUserPayload payload;
 
     @ApiModelProperty(value = "meta", position = 2)
     public BasicMeta meta;
 
     @Data
     @NoArgsConstructor
-    public static class Payload {
+    public static class APIGetUserPayload {
         @ApiModelProperty(value = "profile")
         public Profile profile;
 
-        public Payload(Profile profile) {
+        public APIGetUserPayload(Profile profile) {
             this.profile = profile;
         }
     }
