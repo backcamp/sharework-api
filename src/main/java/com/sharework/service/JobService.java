@@ -14,10 +14,12 @@ import com.sharework.response.model.*;
 import com.sharework.response.model.job.*;
 import com.sharework.response.model.job.APICompletedList.CompletedJob;
 import com.sharework.response.model.job.APICompletedList.JobCompletedPayload;
+import com.sharework.response.model.job.APIPreviousJobs.JobPreviousPayload;
 import com.sharework.response.model.job.APIProceedingList.JobProceedingPayload;
 import com.sharework.response.model.job.APIProceedingList.ProceedingJob;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -442,23 +444,27 @@ public class JobService {
         List<Job> jobs = jobDao.findTop10ByUserIdOrderByIdDesc(userId); // 상위 10개 공고
 
         for (Job job : jobs) {
+            List<JobCheckList> jobChecklist = jobCheckListDao.findByJobId(job.getId());
+            // List<String> checklistContents = checklist.stream().map(JobCheckList::getContents).collect(Collectors.toList());
+            List<String> jobChecklistContents = new ArrayList<>();
+            for (JobCheckList checklist : jobChecklist) {
+                jobChecklistContents.add(checklist.getContents());
+            }
 
-            // 제공사항
-            List<JobBenefit> benefits = jobBenefitDao.findByJobId(job.getId());
-            List<APIPreviousJobs.JobBenefit> responseBenefits = new ArrayList<>();
-            for (JobBenefit benefit : benefits) {
-                Optional<BaseBenefit> baseJobBenefit = baseBenefitDao.findById(benefit.getBaseBenefitId());
-                responseBenefits.add(new APIPreviousJobs.JobBenefit(baseJobBenefit.get().getContents()));
+            List<JobTag> jobTag = jobTagDao.findByJobId(job.getId());
+            List<String> jobTagContents = new ArrayList<>();
+            for (JobTag tag : jobTag) {
+                jobTagContents.add(tag.getContents());
             }
 
             Optional<APIPreviousJobs.Job> responseJob = Optional.of(new APIPreviousJobs.Job(
                     job.getTitle(), job.getStartAt(), job.getEndAt(), job.getPayType(), job.getPay(), job.getContents(),
-                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), responseBenefits));
+                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), jobChecklistContents, jobTagContents));
 
             responseJobs.add(responseJob.get());
         }
 
-        APIPreviousJobs.Payload payload = new APIPreviousJobs.Payload(responseJobs);
+        JobPreviousPayload payload = new JobPreviousPayload(responseJobs);
         BasicMeta meta = new BasicMeta(true, "");
 
         response = new ResponseEntity<>(new APIPreviousJobs(payload, meta), HttpStatus.OK);
