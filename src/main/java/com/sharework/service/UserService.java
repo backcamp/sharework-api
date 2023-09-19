@@ -22,9 +22,11 @@ import com.sharework.response.model.*;
 import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.tag.APIGetTagRank;
+import com.sharework.response.model.tag.APIGetTagRank.APIGetTagRankPayload;
 import com.sharework.response.model.tag.JobTagRank;
 import com.sharework.response.model.tag.TagRank;
 import com.sharework.response.model.user.APIGetUser;
+import com.sharework.response.model.user.APIGetUser.APIGetUserPayload;
 import com.sharework.response.model.user.Giver;
 import com.sharework.response.model.user.Profile;
 import javassist.NotFoundException;
@@ -267,7 +269,7 @@ public class UserService {
             profile.setRate(userRating.getRate());
         });
         BasicMeta meta = new BasicMeta(true, "");
-        APIGetUser apiGetUser = new APIGetUser(new APIGetUser.Payload(profile), meta);
+        APIGetUser apiGetUser = new APIGetUser(new APIGetUserPayload(profile), meta);
         response = new ResponseEntity<>(apiGetUser, HttpStatus.OK);
         return response;
     }
@@ -335,7 +337,7 @@ public class UserService {
         }
 
         BasicMeta meta = new BasicMeta(true, "");
-        APIGetTagRank apiGetTagRank = new APIGetTagRank(new APIGetTagRank.Payload(tagRankList), meta);
+        APIGetTagRank apiGetTagRank = new APIGetTagRank(new APIGetTagRankPayload(tagRankList), meta);
         response = new ResponseEntity<>(apiGetTagRank, HttpStatus.OK);
         return response;
     }

@@ -3,6 +3,7 @@ package com.sharework.controller;
 import com.sharework.request.model.APIUpdateUser;
 import com.sharework.response.model.Response;
 import com.sharework.response.model.SuccessResponse;
+import com.sharework.response.model.tag.APIGetTagRank;
 import com.sharework.response.model.user.APIGetUser;
 import com.sharework.service.UserService;
 import io.swagger.annotations.ApiOperation;
@@ -41,7 +42,7 @@ public class UserController {
         return userService.updateUser(accessToken, request);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIGetUser.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIGetTagRank.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "/tag", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "유저 태그 정보")
