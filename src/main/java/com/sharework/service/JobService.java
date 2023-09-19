@@ -17,9 +17,9 @@ import com.sharework.response.model.job.APICompletedList.JobCompletedPayload;
 import com.sharework.response.model.job.APIPreviousJobs.JobPreviousPayload;
 import com.sharework.response.model.job.APIProceedingList.JobProceedingPayload;
 import com.sharework.response.model.job.APIProceedingList.ProceedingJob;
+import com.sharework.response.model.job.APIProceedingList.ProceedingGroupStatus;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,15 +27,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.sharework.response.model.job.APICompletedList.CompletedGroupstatus;
+import com.sharework.response.model.job.APICompletedList.CompletedGroupStatus;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -480,6 +477,7 @@ public class JobService {
         List<String> status = new ArrayList<>();
         status.add(JobTypeEnum.OPEN.name());
         status.add(JobTypeEnum.STARTED.name());
+        status.add(JobTypeEnum.CLOSED.name());
 
         PageRequest pageRequest = PageRequest.of(page, PAGE_SIZE);
         Page<Job> jobs = jobDao.findByUserIdAndStatusIn(userId, status, pageRequest);
@@ -488,7 +486,13 @@ public class JobService {
         for (Job job : jobs) {
 
             //가장 많은 application이며 가장 높은 status 우선순위로 나옴.
-            GroupStatus groupstatus = applicationDao.processingGroupStatus(job.getId());
+            ProceedingGroupStatus proceedingGroupStatus = new ProceedingGroupStatus();
+            GroupStatus groupStatus = applicationDao.processingGroupStatus(job.getId());
+
+            if (groupStatus != null) {
+                proceedingGroupStatus.setName(groupStatus.getName());
+                proceedingGroupStatus.setCount(groupStatus.getCount());
+            }
 
             // payment 계산
             int payment = 0;
@@ -501,7 +505,7 @@ public class JobService {
             List<JobTag> tags = jobTagDao.findByJobId(job.getId());
 
             ProceedingJob responseJob = Optional.of(new ProceedingJob(
-                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), groupstatus, job.getStatus(), payment, tags)).orElseThrow();
+                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), proceedingGroupStatus, job.getStatus(), payment, tags)).orElseThrow();
 
             responseJobs.add(responseJob);
         }
@@ -528,12 +532,13 @@ public class JobService {
         List<CompletedJob> responseJobs = new ArrayList<>();
 
         for (Job job : jobs) {
-            String applicationStatus = "";
-            int applicationCount = 0;
+            CompletedGroupStatus completedGroupStatus = new CompletedGroupStatus();
+            GroupStatus groupStatus = applicationDao.completedGroupStatus(job.getId());
 
-            applicationStatus = ApplicationTypeEnum.COMPLETED.name();
-            applicationCount = applicationDao.countByJobIdAndStatusStartingWith(job.getId(), "C");
-
+            if (groupStatus != null) {
+                completedGroupStatus.setName(groupStatus.getName());
+                completedGroupStatus.setCount(groupStatus.getCount());
+            }
             // payment 계산
             int payment = 0;
             List<ApplicationTotalPayment> applicationTotalPaymentList = applicationTotalPaymentDao.getByJobId(job.getId());
@@ -543,10 +548,9 @@ public class JobService {
 
             //tags
             List<JobTag> tags = jobTagDao.findByJobId(job.getId());
-            CompletedGroupstatus groupStatus = new CompletedGroupstatus(applicationStatus, applicationCount);
 
             Optional<CompletedJob> responseJob = Optional.of(new CompletedJob(
-                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), groupStatus, job.getStatus(), payment, tags));
+                    job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), completedGroupStatus, job.getStatus(), payment, tags));
 
             responseJobs.add(responseJob.get());
         }

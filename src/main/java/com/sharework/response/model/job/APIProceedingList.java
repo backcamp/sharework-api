@@ -5,8 +5,7 @@ import com.sharework.model.JobTag;
 import com.sharework.response.model.Pagination;
 import com.sharework.response.model.meta.BasicMeta;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -58,23 +57,31 @@ public class APIProceedingList {
 
         public long totalPay;
 
-        public GroupStatus groupstatus;
+        public ProceedingGroupStatus groupStatus;
 
         @Column(name = "status")
         public String status;
 
         public List<JobTag> tags;
 
-        public ProceedingJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, GroupStatus groupStatus, String status, long totalPay, List<JobTag> tags) {
+        public ProceedingJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, ProceedingGroupStatus groupStatus, String status, long totalPay, List<JobTag> tags) {
             this.id = id;
             this.title = title;
             this.startAt = startAt;
             this.endAt = endAt;
-            this.groupstatus = groupStatus;
+            this.groupStatus = groupStatus;
             this.status = status;
             this.totalPay = totalPay;
             this.tags = tags;
         }
+    }
+
+    @RequiredArgsConstructor
+    @Data
+    public static class ProceedingGroupStatus {
+
+        String name = "APPLIED";
+        int count = 0;
     }
 }
 
