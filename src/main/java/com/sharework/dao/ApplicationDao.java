@@ -30,6 +30,9 @@ public interface ApplicationDao extends JpaRepository<Application, Long> {
     @Query(value = "SELECT status name,count(status) count FROM application WHERE job_id = :job_id GROUP BY status  having  status in('APPLIED','HIRED','HIRED_APPROVED','HIRED_REQUEST') ORDER BY COUNT(status) DESC, CASE WHEN status = 'HIRED_APPROVED' THEN 1 WHEN status = 'HIRED_REQUEST' THEN 2 WHEN status = 'HIRED' THEN 3 WHEN status = 'APPLIED' THEN 4 ELSE 5 end limit 1", nativeQuery = true)
     GroupStatus processingGroupStatus(@Param("job_id") long JobId);
 
+    @Query(value = "SELECT 'COMPLETED' AS name, (select count(*) FROM application a WHERE job_id = :job_id and status like 'C%') as count",nativeQuery = true)
+    GroupStatus completedGroupStatus(@Param("job_id") long JobId);
+
     Page<Application> getByUserIdAndStatusContaining(long userId, String status, Pageable pageable);
 
     Page<Application> getByUserIdAndStatusContainingOrderByStartAt(long userId, String status, Pageable pageable);
