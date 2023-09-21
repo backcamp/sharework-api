@@ -55,7 +55,7 @@ public class JobHiredInfoPayload {
                 .giverNameAndPhoneNumber(GiverNameAndPhoneNumber.builder()
                         .name(giver.getName())
                         .phoneNumber(giver.getPhoneNumber())
-                        .userProfileImg(worker.getProfileImg())
+                        .userProfileImg(giver.getProfileImg())
                         .build())
                 .build();
     }
