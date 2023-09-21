@@ -13,17 +13,21 @@ import com.sharework.response.model.SuccessResponse;
 import com.sharework.response.model.application.APIApplicationHistory;
 import com.sharework.response.model.application.APIApplicationStatusOverview;
 import com.sharework.response.model.application.APIReceiptWorker;
+import com.sharework.response.model.application.APIReceiptWorker.RwUser;
+import com.sharework.response.model.application.APIReceiptWorker.RwJob;
+import com.sharework.response.model.application.APIReceiptWorker.RwJobTag;
+import com.sharework.response.model.application.APIReceiptWorker.RwApplication;
+import com.sharework.response.model.application.APIReceiptWorker.RwPayload;
 import com.sharework.response.model.job.JobOverview;
 import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -32,22 +36,17 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ApplicationService {
-    @Autowired
-    ApplicationDao applicationDao;
-    @Autowired
-    ApplicationChecklistDao applicationChecklistDao;
-    @Autowired
-    JobDao jobDao;
-    @Autowired
-    JobTagDao jobTagDao;
-    @Autowired
-    UserDao userDao;
-    @Autowired
-    TokenIdentification identification;
 
-    @Autowired
-    ApplicationTotalPaymentDao applicationTotalPaymentDao;
+    private final ApplicationDao applicationDao;
+    private final ApplicationChecklistDao applicationChecklistDao;
+    private final JobDao jobDao;
+    private final JobTagDao jobTagDao;
+    private final UserDao userDao;
+    private final ReviewDao reviewDao;
+    private final  ApplicationTotalPaymentDao applicationTotalPaymentDao;
+    private final TokenIdentification identification;
     private int PAGE_SIZE = 100;
 
     public ResponseEntity insertApplication(APIApplicationApplied application, String accessToken) {
@@ -99,11 +98,6 @@ public class ApplicationService {
             Application application = applications.getContent().get(i);
 
             Optional<Job> job = jobDao.findById(application.getJobId());
-
-            if (status.equals(ApplicationTypeEnum.COMPLETED.name())) {
-                // isReview check 로직
-
-            }
 
             // 태그
             List<JobTag> tags = jobTagDao.findByJobId(application.getJobId());
@@ -212,7 +206,7 @@ public class ApplicationService {
         Optional<Application> application = applicationDao.findById(id);
         Optional<Job> job = jobDao.findById(application.get().getJobId());
 
-        String jobStatusArr[] = {"OPEN", "STARTED", "CLOSED"};
+        String[] jobStatusArr = {"OPEN", "STARTED", "CLOSED"};
         List<String> jobStatusList = new ArrayList<>(Arrays.asList(jobStatusArr));
         if (jobStatusList.contains(job.get().getStatus())) {
             if (!application.get().getStatus().equals(ApplicationTypeEnum.HIRED_REQUEST.name())) {
@@ -274,37 +268,28 @@ public class ApplicationService {
         ResponseEntity response = null;
         Response error = null;
 
-        Optional<Application> application = applicationDao.findById(id);
-        Optional<Job> job = jobDao.findById(application.get().getJobId());
-
-        if (job.isEmpty()) {
-            String errorMsg = "존재하지 않는 공고입니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
-        }
+        Application application = applicationDao.findById(id).orElseThrow();
+        Job job = jobDao.findById(application.getJobId()).orElseThrow();
 
         // job tag
-        List<APIReceiptWorker.JobTag> responseJobTags = new ArrayList<>();
-        List<JobTag> jobTags = jobTagDao.findByJobId(job.get().getId());
-        for (JobTag jobTag : jobTags) {
-            Optional<APIReceiptWorker.JobTag> responseJobTag = Optional.of(new APIReceiptWorker.JobTag(jobTag.getContents()));
+        List<RwJobTag> responseJobTags = new ArrayList<>();
+        List<JobTag> jobTagList = jobTagDao.findByJobId(job.getId());
+        for (JobTag jobTag : jobTagList)
+            responseJobTags.add(new RwJobTag(jobTag.getContents()));
 
-            responseJobTags.add(responseJobTag.get());
-        }
-
-        // user
-        Optional<User> user = userDao.findByIdAndDeleteYn(job.get().getUserId(), "N");
-        Optional<APIReceiptWorker.User> responseUser = Optional.of(new APIReceiptWorker.User(user.get().getId(), user.get().getProfileImg()));
+        // giver
+        User giver = userDao.findById(job.getUserId()).orElseThrow();
+        RwUser responseUser = new RwUser(giver.getId(), giver.getProfileImg());
 
         //totalPayment
         int totalPayment = applicationTotalPaymentDao.getByApplicationId(id).getTotalPayment();
-        Optional<APIReceiptWorker.Job> responseJob = Optional.of(new APIReceiptWorker.Job(job.get().getId(), job.get().getTitle(), job.get().getStartAt(), job.get().getEndAt(), totalPayment, responseJobTags, responseUser.get()));
+        RwJob responseJob = new RwJob(job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), totalPayment, responseJobTags, responseUser);
 
-        // TODO: isReview 체크
-        Optional<APIReceiptWorker.Application> responseApplication = Optional.of(new APIReceiptWorker.Application(application.get().getId(), true, responseJob.get()));
+        // isReview 체크
+        boolean isReview = reviewDao.existsByWorkerIdAndJobIdAndReviewType(application.getUserId(),job.getId(),"WORKER");
+        RwApplication responseApplication = new RwApplication(application.getId(), isReview, responseJob);
 
-        APIReceiptWorker.Payload payload = new APIReceiptWorker().new Payload(responseApplication.get());
+        RwPayload payload = new RwPayload(responseApplication);
         BasicMeta meta = new BasicMeta(true, "");
 
         response = new ResponseEntity<>(new APIReceiptWorker(payload, meta), HttpStatus.OK);

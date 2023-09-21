@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface UserReviewDao extends JpaRepository<UserReview, Long> {
     Optional<UserReview> findByUserIdAndBaseReviewIdAndUserType(long userId, long baseReviewId, String userType);
 
+    boolean existsByUserIdAndBaseReviewIdAndUserType(long userId, long baseReviewId, String userType);
+
     List<UserReview> getByUserIdAndUserType(long userId,String userType);
 }
 

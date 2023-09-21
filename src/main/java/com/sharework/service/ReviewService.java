@@ -9,10 +9,7 @@ import com.sharework.response.model.Response;
 import com.sharework.response.model.SuccessResponse;
 import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
-import com.sharework.response.model.review.APIGetReview;
-import com.sharework.response.model.review.DetailReview;
-import com.sharework.response.model.review.QuickReview;
-import com.sharework.response.model.review.QuickReviewRank;
+import com.sharework.response.model.review.*;
 import com.sharework.response.model.user.Giver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +19,7 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.LongStream;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +31,6 @@ public class ReviewService {
     private final UserReviewDao userReviewDao;
     private final ApplicationDao applicationDao;
     private final BaseReviewDao baseReviewDao;
-
     private final JobTagDao jobTagDao;
     private final JobDao jobDao;
 
@@ -44,20 +41,20 @@ public class ReviewService {
         Response error = null;
 
         long userId = identification.getHeadertoken(accessToken);
-        User user = userDao.findByIdAndDeleteYn(userId,"N").orElseThrow();
+        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
         List<Review> reviewList = null;
 
         if (user.getUserType().equals("worker"))
-            reviewList = reviewDao.findByGiverId(userId);
+            reviewList = reviewDao.findByWorkerIdAndReviewType(userId, "GIVER");
         else
-            reviewList = reviewDao.findByWorkerId(userId);
+            reviewList = reviewDao.findByGiverIdAndReviewType(userId, "WORKER");
 
         List<DetailReview> detailReview = new ArrayList<>();
 
         reviewList.forEach(review -> {
             User reviewUser = null;
 
-            reviewUser = review.getReviewType().equals("WORKER") ? userDao.findByIdAndDeleteYn(review.getGiverId(),"N").orElseThrow() : userDao.findByIdAndDeleteYn(review.getWorkerId(),"N").orElseThrow();
+            reviewUser = review.getReviewType().equals("WORKER") ? userDao.findByIdAndDeleteYn(review.getGiverId(), "N").orElseThrow() : userDao.findByIdAndDeleteYn(review.getWorkerId(), "N").orElseThrow();
             Giver giver = new Giver(reviewUser.getId(), reviewUser.getName(), reviewUser.getProfileImg());
             List<JobTagList> jobTagList = new ArrayList<>();
 
@@ -89,7 +86,7 @@ public class ReviewService {
         BasicMeta meta;
 
         long userId = identification.getHeadertoken(accessToken);
-        User user = userDao.findByIdAndDeleteYn(userId,"N").orElseThrow();
+        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
 
         Long opponentId = null;
 
@@ -103,8 +100,6 @@ public class ReviewService {
                     .giverId(opponentId).reviewType("WORKER").jobId(registerReview.getJobId())
                     .build());
 
-            //worker가 giver에게 리뷰남기면 application status는 completed_reviewed로 변환한다.
-            applicationDao.getById(registerReview.getApplicationId()).setStatus(ApplicationTypeEnum.COMPLETED_REVIEWED.name());
         } else {
             //giver -> worker
             opponentId = applicationDao.getById(registerReview.getApplicationId()).getUserId();
@@ -126,17 +121,29 @@ public class ReviewService {
 //            }
         String opponentType = user.getUserType().equals("worker") ? "GIVER" : "WORKER";
 
-        for (long baseReviewId : registerReview.getBaseReviewId()) {
-            Optional<UserReview> userReview = userReviewDao.findByUserIdAndBaseReviewIdAndUserType(opponentId, baseReviewId, opponentType);
-            Long setOpponentId = opponentId;
-            userReview.ifPresentOrElse(selectUserReview -> {
-                selectUserReview.setCount(selectUserReview.getCount() + 1);
-                userReviewDao.save(selectUserReview);
-            }, () -> {
-                userReviewDao.save(UserReview.builder().userId(setOpponentId).baseReviewId(baseReviewId).userType(opponentType).count(1).build());
-            });
-        }
+        List<BaseReviewId> baseReviewList = baseReviewDao.getIdByUserType(opponentType);
 
+        for (BaseReviewId baseReview : baseReviewList) {
+            long baseReviewId = baseReview.getId();
+
+            // 요청한 id가 요청한 baseReviewId에 존재한다면
+            if (LongStream.of(registerReview.getBaseReviewId()).anyMatch(x -> x == baseReviewId)) {
+                Optional<UserReview> userReview = userReviewDao.findByUserIdAndBaseReviewIdAndUserType(opponentId, baseReviewId, opponentType);
+                Long setOpponentId = opponentId;
+                userReview.ifPresentOrElse(selectUserReview -> {
+                    selectUserReview.setCount(selectUserReview.getCount() + 1);
+                    userReviewDao.save(selectUserReview);
+                }, () -> {
+                    userReviewDao.save(UserReview.builder().userId(setOpponentId).baseReviewId(baseReviewId).userType(opponentType).count(1).build());
+                });
+            }
+
+            //baseReviewId가 없다면 userReview에 없다면 0으로 추가.
+            else {
+                if (!userReviewDao.existsByUserIdAndBaseReviewIdAndUserType(opponentId, baseReviewId, opponentType))
+                    userReviewDao.save(UserReview.builder().userId(opponentId).baseReviewId(baseReviewId).userType(opponentType).count(0).build());
+            }
+        }
 
         //user Rate update
         Double rate = null;
