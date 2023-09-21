@@ -67,8 +67,10 @@ public class APIPreviousJobs {
 
         public List<String> tags;
 
+        public long personnel;
+
         public Job(String title, LocalDateTime startAt, LocalDateTime endAt, String payType, Integer pay, String contents, LocalDateTime createdAt, double lat, double lng,
-                   String addressDetail, List<String> checklist, List<String> tags) {
+                   String addressDetail, List<String> checklist, List<String> tags, long personnel) {
             this.title = title;
             this.startAt = startAt;
             this.endAt = endAt;
@@ -81,6 +83,7 @@ public class APIPreviousJobs {
             this.addressDetail = addressDetail;
             this.checklist = checklist;
             this.tags = tags;
+            this.personnel = personnel;
         }
     }
 

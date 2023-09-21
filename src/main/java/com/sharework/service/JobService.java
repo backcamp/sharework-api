@@ -456,7 +456,7 @@ public class JobService {
 
             Optional<APIPreviousJobs.Job> responseJob = Optional.of(new APIPreviousJobs.Job(
                     job.getTitle(), job.getStartAt(), job.getEndAt(), job.getPayType(), job.getPay(), job.getContents(),
-                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), jobChecklistContents, jobTagContents));
+                    job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), jobChecklistContents, jobTagContents, job.getPersonnel()));
 
             responseJobs.add(responseJob.get());
         }
