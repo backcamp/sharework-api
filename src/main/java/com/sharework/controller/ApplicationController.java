@@ -91,10 +91,10 @@ public class ApplicationController {
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = Response.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
-    @PatchMapping(value = "/rejected", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @ApiOperation(httpMethod = "PATCH", value = "다중 채택 취소")
-    public ResponseEntity updateRejected(@RequestBody List<Long> applicationIds) {
-        return applicationService.updateRejected(applicationIds);
+    @PatchMapping(value = "/rejected/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(httpMethod = "PATCH", value = "단일 채택 취소")
+    public ResponseEntity updateRejected(@PathVariable long id) {
+        return applicationService.updateRejected(id);
     }
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = Response.class),
