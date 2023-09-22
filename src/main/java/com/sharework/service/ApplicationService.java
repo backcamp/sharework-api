@@ -24,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class ApplicationService {
     private final JobTagDao jobTagDao;
     private final UserDao userDao;
     private final ReviewDao reviewDao;
-    private final  ApplicationTotalPaymentDao applicationTotalPaymentDao;
+    private final ApplicationTotalPaymentDao applicationTotalPaymentDao;
     private final TokenIdentification identification;
     private int PAGE_SIZE = 100;
 
@@ -118,7 +119,7 @@ public class ApplicationService {
                 if (applicationTotalPaymentDao.getByApplicationId(application.getId()) != null)
                     totalPayment = applicationTotalPaymentDao.getByApplicationId(application.getId()).getTotalPayment();
                 // isReview 체크
-              isReviewed = reviewDao.existsByWorkerIdAndJobIdAndReviewType(application.getUserId(),job.getId(),"WORKER");
+                isReviewed = reviewDao.existsByWorkerIdAndJobIdAndReviewType(application.getUserId(), job.getId(), "WORKER");
             }
             JobOverview jobOverview = JobOverview.builder().id(job.getId()).title(job.getTitle()).coordinate(coordinate).giver(giver).startAt(job.getStartAt()).endAt(job.getEndAt()).pay(job.getPay()).payType(job.getPayType()).totalPay(totalPayment).tags(jobTags).build();
 
@@ -126,12 +127,13 @@ public class ApplicationService {
             boolean isRequestPossible = false;
             if (nowTime.plusMinutes(30).isAfter(job.getStartAt())) isRequestPossible = true;
 
-            responseApplications.add(new AhApplication(application.getId(), application.getStatus(), jobOverview, isRequestPossible,isReviewed));
+            responseApplications.add(new AhApplication(application.getId(), application.getStatus(), jobOverview, isRequestPossible, isReviewed));
         }
 
         Pagination pagination = new Pagination(applications.isLast(), page + 1, applications.getTotalElements());
 
-        AhPayload payload = new AhPayload(responseApplications, pagination);;
+        AhPayload payload = new AhPayload(responseApplications, pagination);
+        ;
         BasicMeta meta = new BasicMeta(true, "");
         APIApplicationHistory apiApplicationHistory = new APIApplicationHistory(payload, meta);
         response = new ResponseEntity<>(apiApplicationHistory, HttpStatus.OK);
