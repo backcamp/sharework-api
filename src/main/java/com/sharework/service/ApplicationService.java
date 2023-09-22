@@ -365,7 +365,7 @@ public class ApplicationService {
 
         Optional<Job> job = jobDao.findById(application.get().getJobId());
         if (LocalDateTime.now().plusHours(3).isAfter(job.get().getStartAt())) {
-            meta = new BasicMeta(false, "Not rejected in 3 hours.");
+            meta = new BasicMeta(false, "채택 취소는 일감 시작 3시간 전까지만 가능합니다.");
             SuccessResponse result = new SuccessResponse(meta);
             response = new ResponseEntity<>(result, HttpStatus.OK);
             return response;
