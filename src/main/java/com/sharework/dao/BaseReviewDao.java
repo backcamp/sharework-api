@@ -10,5 +10,5 @@ import java.util.List;
 public interface BaseReviewDao extends JpaRepository<BaseReview, Long> {
 
     List<BaseReview> getByUserType(String userType);
-    List<BaseReviewId>getIdByUserType(String userType);
+    List<BaseReviewId> getIdByUserType(String userType);
 }
