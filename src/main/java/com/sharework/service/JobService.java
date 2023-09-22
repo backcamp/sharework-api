@@ -230,11 +230,10 @@ public class JobService {
 
         //worker라면 addressDetail이 HIRED...,COMPLETED 일 경우에만 나와야한다.
         List<String> accessAddressDetailStatus = new ArrayList<>();
-        accessAddressDetailStatus.add(ApplicationTypeEnum.HIRED_APPROVED.name());
         accessAddressDetailStatus.add(ApplicationTypeEnum.HIRED.name());
-        accessAddressDetailStatus.add(ApplicationTypeEnum.COMPLETED.name());
         accessAddressDetailStatus.add(ApplicationTypeEnum.HIRED_REQUEST.name());
-        accessAddressDetailStatus.add(ApplicationTypeEnum.COMPLETED_REVIEWED.name());
+        accessAddressDetailStatus.add(ApplicationTypeEnum.HIRED_APPROVED.name());
+        accessAddressDetailStatus.add(ApplicationTypeEnum.COMPLETED.name());
 
         boolean accessAddressDetail = true;
         String jobStatus = applicationDao.findByJobIdAndUserId(id, userId) == null ? "FAILED" : applicationDao.findByJobIdAndUserId(id, userId).getStatus();

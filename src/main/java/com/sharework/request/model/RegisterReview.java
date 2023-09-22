@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 @ToString
 
 public class RegisterReview {
-	@ApiModelProperty(value = "jobId", position = 1, example = "154")
+	@ApiModelProperty(value = "jobId", position = 1, example = "154",required = true)
 	private long jobId;
 
 	@ApiModelProperty(value = "applicationId", position = 1, example = "80")

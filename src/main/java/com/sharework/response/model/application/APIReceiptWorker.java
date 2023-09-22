@@ -15,51 +15,43 @@ import java.util.List;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class APIReceiptWorker {
-	public APIReceiptWorker(Payload payload, BasicMeta meta) {
+	public APIReceiptWorker(RwPayload payload, BasicMeta meta) {
 		this.payload = payload;
 		this.meta = meta;
 	}
 
 	@ApiModelProperty(value = "payload", position = 1)
-	public Payload payload;
+	public RwPayload payload;
 
 	@ApiModelProperty(value = "meta", position = 2)
 	public BasicMeta meta;
 
-	public class Payload {
-		@ApiModelProperty(value = "application")
-		public Application application;
+	public static class RwPayload {
+		public RwApplication application;
 
-		public Payload(Application application) {
+		public RwPayload(RwApplication application) {
 			this.application = application;
 		}
 	}
 
-	public static class Job {
-		@Id
-		@Column(name = "id")
+	public static class RwJob {
+
 		public long id;
 
-		@Column(name = "title")
 		public String title;
 
-		@Column(name = "startAt")
 		public LocalDateTime startAt;
 
-		@Column(name = "endAt")
 		public LocalDateTime endAt;
 
-		@Column(name = "totalPayment")
 		public Integer totalPayment;
 
-		@ApiModelProperty(value = "jobTags")
-		public List<JobTag> jobTags;
+		public List<RwJobTag> jobTags;
 
-		@ApiModelProperty(value = "user")
-		public User user;
+		public RwUser user;
 
-		public Job(long id, String title, LocalDateTime startAt, LocalDateTime endAt, int totalPayment, List<JobTag> jobTags,
-				   User user) {
+		public RwJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, int totalPayment, List<RwJobTag> jobTags,
+					 RwUser user) {
 			this.id = id;
 			this.title = title;
 			this.startAt = startAt;
@@ -70,42 +62,37 @@ public class APIReceiptWorker {
 		}
 	}
 
-	public static class JobTag {
-		@Column(name = "contents")
+	public static class RwJobTag {
 		public String contents;
 
-		public JobTag(String contents) {
+		public RwJobTag(String contents) {
 			this.contents = contents;
 		}
 	}
 
-	public static class Application {
+	public static class RwApplication {
 
-		@Id
-		@Column(name = "id")
 		public long id;
 
-		@Column(name = "isReview")
 		public Boolean isReview;
 
-		@ApiModelProperty(value = "job")
-		public Job job;
+		public RwJob job;
 
-		public Application(long id, Boolean isReview, Job job) {
+		public RwApplication(long id, Boolean isReview, RwJob job) {
 			this.id = id;
 			this.isReview = isReview;
 			this.job = job;
 		}
 	}
 
-	public static class User {
+	public static class RwUser {
 		@Column(name = "name")
 		public long name;
 
 		@Column(name = "profileImg")
 		public String profileImg;
 
-		public User(long name, String profileImg) {
+		public RwUser(long name, String profileImg) {
 			this.name = name;
 			this.profileImg = profileImg;
 		}

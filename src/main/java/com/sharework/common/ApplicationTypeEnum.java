@@ -10,5 +10,4 @@ public enum ApplicationTypeEnum {
     FAILED,  // 채택 실패됨
     NO_SHOW,  // 채택 됐지만 일 시작 안함
     COMPLETED, // 알바완료
-    COMPLETED_REVIEWED;//댓글작성완료
 }
