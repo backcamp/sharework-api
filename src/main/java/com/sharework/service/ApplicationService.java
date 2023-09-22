@@ -319,26 +319,32 @@ public class ApplicationService {
         return response;
     }
 
-    public ResponseEntity updateRejected(List<Long> applicationIds) {
+    public ResponseEntity updateRejected(Long applicationIds) {
         ResponseEntity response = null;
         BasicMeta meta = null;
         List<Long> failedList = new ArrayList<>();
         long jobId = 0;
 
-        for (Long id : applicationIds) {
-            Optional<Application> application = applicationDao.findById(id);
-            jobId = application.orElseThrow().getJobId();
-            application.ifPresentOrElse(rejectedApplication -> {
-                        if (rejectedApplication.getStatus().equals(ApplicationTypeEnum.HIRED_APPROVED.name())) {
-                            failedList.add(id);
-                            return;
-                        }
-                        rejectedApplication.setStatus(ApplicationTypeEnum.REJECTED.name());
-                        applicationDao.save(rejectedApplication);
-                    },
-                    () -> {
-                        failedList.add(id);
-                    });
+        Optional<Application> application = applicationDao.findById(applicationIds);
+        jobId = application.orElseThrow().getJobId();
+        application.ifPresentOrElse(rejectedApplication -> {
+                    if (rejectedApplication.getStatus().equals(ApplicationTypeEnum.HIRED_APPROVED.name())) {
+                        failedList.add(applicationIds);
+                        return;
+                    }
+                    rejectedApplication.setStatus(ApplicationTypeEnum.REJECTED.name());
+                    applicationDao.save(rejectedApplication);
+                },
+                () -> {
+                    failedList.add(applicationIds);
+                });
+
+        Optional<Job> job = jobDao.findById(application.get().getJobId());
+        if (LocalDateTime.now().plusHours(3).isAfter(job.get().getStartAt())) {
+            meta = new BasicMeta(false, "채택 취소는 일감 시작 3시간 전까지만 가능합니다.");
+            SuccessResponse result = new SuccessResponse(meta);
+            response = new ResponseEntity<>(result, HttpStatus.OK);
+            return response;
         }
         //job에 %hired%(채택된) 지원서가 job의 personnel보다 작으면 job status 를 OPEN으로 변경
         List<Application> applicationCheckList = applicationDao.findByJobIdAndStatusContaining(jobId, "HIRED");
