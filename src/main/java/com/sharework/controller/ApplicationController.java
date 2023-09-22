@@ -73,13 +73,13 @@ public class ApplicationController {
         return applicationService.updateHired(applicationIds, accessToken);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIReceiptGiver.class),
-            @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
-    @GetMapping(value = "receipt/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @ApiOperation(httpMethod = "GET", value = "워커 완료된 공고 영수증")
-    public ResponseEntity getReceiptWorker(@PathVariable long id) {
-        return applicationService.getReceiptWorker(id);
-    }
+//    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIReceiptGiver.class),
+//            @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
+//    @GetMapping(value = "receipt/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+//    @ApiOperation(httpMethod = "GET", value = "워커 완료된 공고 영수증")
+//    public ResponseEntity getReceiptWorker(@PathVariable long id) {
+//        return applicationService.getReceiptWorker(id);
+//    }
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = Response.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})

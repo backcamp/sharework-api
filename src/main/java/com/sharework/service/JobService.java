@@ -28,7 +28,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.sharework.response.model.job.APICompletedList.CompletedGroupStatus;
-
+import com.sharework.response.model.job.APIReceiptGiver.RgApplicationOverview;
+import com.sharework.response.model.job.APIReceiptGiver.RgUser;
+import com.sharework.response.model.job.APIReceiptGiver.RgWorker;
+import com.sharework.response.model.job.APIReceiptGiver.RgPayload;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,32 +41,20 @@ import java.util.*;
 @RequiredArgsConstructor
 public class JobService {
 
-    @Autowired
-    JobDao jobDao;
-    @Autowired
-    ApplicationDao applicationDao;
-    @Autowired
-    UserChecklistDao userChecklistDao;
-    @Autowired
-    TokenIdentification identification;
-    @Autowired
-    TagService tagService;
-    @Autowired
-    ChecklistService userChecklistService;
-    @Autowired
-    UserDao userDao;
-    @Autowired
-    JobBenefitDao jobBenefitDao;
-    @Autowired
-    JobTagDao jobTagDao;
-    @Autowired
-    JobCheckListDao jobCheckListDao;
-    @Autowired
-    ApplicationChecklistDao applicationChecklistDao;
-    @Autowired
-    BaseBenefitDao baseBenefitDao;
-
+    private final JobDao jobDao;
+    private final ApplicationDao applicationDao;
+    private final UserChecklistDao userChecklistDao;
+    private final TokenIdentification identification;
+    private final TagService tagService;
+    private final ChecklistService userChecklistService;
+    private final UserDao userDao;
+    private final JobBenefitDao jobBenefitDao;
+    private final JobTagDao jobTagDao;
+    private final JobCheckListDao jobCheckListDao;
+    private final ApplicationChecklistDao applicationChecklistDao;
+    private final BaseBenefitDao baseBenefitDao;
     private final ApplicationTotalPaymentDao applicationTotalPaymentDao;
+    private final ReviewDao reviewDao;
     private final int PAGE_SIZE = 5;
 
     public ResponseEntity getJobList(JobLocation getJob) {
@@ -389,41 +380,30 @@ public class JobService {
         ResponseEntity response = null;
         Response error = null;
 
-        Optional<Job> job = jobDao.findById(id);
-
-        if (job.isEmpty()) {
-            String errorMsg = "존재하지 않는 공고입니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
-        }
-
-        List<APIReceiptGiver.ApplicationOverview> responseApplications = new ArrayList<>();
+        List<RgApplicationOverview> responseApplications = new ArrayList<>();
         List<Application> applications = applicationDao.findByJobIdAndStatus(id, ApplicationTypeEnum.COMPLETED.name()); // 해당 공고에 일이 완료된 지원서 가져오기
 
+        Job job = jobDao.findById(id).orElseThrow();
+
         for (Application application : applications) {
-            // user
-            Optional<User> user = userDao.findByIdAndDeleteYn(application.getUserId(), "N");
-            Optional<APIReceiptGiver.User> responseUser = Optional.of(new APIReceiptGiver.User(user.get().getId(), user.get().getName(),
-                    user.get().getProfileImg()));
 
-            // TODO:해당 지원서에 리뷰 작성했는지 체크
+            // worker
+            User user = userDao.findById(application.getUserId()).orElseThrow();
+            RgUser responseUser = new RgUser(user.getId(), user.getName(),user.getProfileImg());
 
+            // 지원서에 리뷰 작성했는지 체크
+            boolean isReviewed = reviewDao.existsByGiverIdAndWorkerIdAndJobIdAndReviewType(job.getUserId(),application.getUserId(),job.getId(),"GIVER");
+            int experienceCount = applicationDao.countByUserIdAndStatus(user.getId(), ApplicationTypeEnum.COMPLETED.name()); // 경력
+            int absenceCount = applicationDao.countByUserIdAndStatus(user.getId(), ApplicationTypeEnum.NO_SHOW.name()); // 결근
 
-            int experienceCount = applicationDao.countByUserIdAndStatus(user.get().getId(), ApplicationTypeEnum.COMPLETED.name()); // 경력
-            int absenceCount = applicationDao.countByUserIdAndStatus(user.get().getId(), ApplicationTypeEnum.NO_SHOW.name()); // 결근
-
-            Optional<APIReceiptGiver.Worker> responseWorker = Optional.of(new APIReceiptGiver.Worker(
-                    responseUser.get(), experienceCount, absenceCount));
+            RgWorker responseWorker = new RgWorker(responseUser, experienceCount, absenceCount);
 
             // payment 계산
-//            int payment = 0;
             int payment = applicationTotalPaymentDao.getByApplicationId(application.getId()).getTotalPayment();
-
-            responseApplications.add(new APIReceiptGiver.ApplicationOverview(application.getId(), responseWorker.get(), application.getStartAt(), application.getEndAt(), payment, application.getStatus()));
+            responseApplications.add(new RgApplicationOverview(application.getId(), responseWorker, application.getStartAt(), application.getEndAt(), payment, isReviewed));
         }
 
-        APIReceiptGiver.Payload payload = new APIReceiptGiver().new Payload(responseApplications);
+        RgPayload payload = new RgPayload(responseApplications);
         BasicMeta meta = new BasicMeta(true, "");
 
         response = new ResponseEntity<>(new APIReceiptGiver(payload, meta), HttpStatus.OK);

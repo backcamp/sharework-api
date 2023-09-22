@@ -19,6 +19,8 @@ public interface ReviewDao extends JpaRepository<Review, Long> {
 
     boolean existsByWorkerIdAndJobIdAndReviewType(long workerId, long jobId, String reviewType);
 
+    boolean existsByGiverIdAndWorkerIdAndJobIdAndReviewType(long giverId, long workerId, long jobId, String reviewType);
+
     @Query(value = "SELECT round(CAST(avg(star_rating) as numeric), 2) FROM review WHERE review_type = 'WORKER' and giver_id =:giverId", nativeQuery = true)
     double getAvgRateGiver(@Param("giverId") long giverId);
 

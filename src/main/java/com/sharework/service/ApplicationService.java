@@ -11,13 +11,9 @@ import com.sharework.response.model.Pagination;
 import com.sharework.response.model.Response;
 import com.sharework.response.model.SuccessResponse;
 import com.sharework.response.model.application.APIApplicationHistory;
+import com.sharework.response.model.application.APIApplicationHistory.AhApplication;
+import com.sharework.response.model.application.APIApplicationHistory.AhPayload;
 import com.sharework.response.model.application.APIApplicationStatusOverview;
-import com.sharework.response.model.application.APIReceiptWorker;
-import com.sharework.response.model.application.APIReceiptWorker.RwUser;
-import com.sharework.response.model.application.APIReceiptWorker.RwJob;
-import com.sharework.response.model.application.APIReceiptWorker.RwJobTag;
-import com.sharework.response.model.application.APIReceiptWorker.RwApplication;
-import com.sharework.response.model.application.APIReceiptWorker.RwPayload;
 import com.sharework.response.model.job.JobOverview;
 import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
@@ -92,12 +88,11 @@ public class ApplicationService {
 
         LocalDateTime nowTime = LocalDateTime.now();
 
-        List<APIApplicationHistory.Application> responseApplications = new ArrayList<>();
+        List<AhApplication> responseApplications = new ArrayList<>();
 
         for (int i = 0; i < applications.getContent().size(); i++) {
             Application application = applications.getContent().get(i);
-
-            Optional<Job> job = jobDao.findById(application.getJobId());
+            Job job = jobDao.findById(application.getJobId()).orElseThrow();
 
             // 태그
             List<JobTag> tags = jobTagDao.findByJobId(application.getJobId());
@@ -107,36 +102,36 @@ public class ApplicationService {
             }
 
             // giver
-            Optional<User> user = userDao.findByIdAndDeleteYn(job.get().getUserId(), "N");
-            Giver giver = new Giver(user.get().getId(), user.get().getName(), user.get().getProfileImg());
+            User user = userDao.findByIdAndDeleteYn(job.getUserId(), "N").orElseThrow();
+            Giver giver = new Giver(user.getId(), user.getName(), user.getProfileImg());
 
             //Coordinate
-            Coordinate coordinate = new Coordinate(job.get().getLat(), job.get().getLng());
+            Coordinate coordinate = new Coordinate(job.getLat(), job.getLng());
 
             // jobOverview
 
             //totalPayment -> COMPLETED일때만 진행.
             int totalPayment = 0;
+
+            boolean isReviewed = false;
             if (status.equals(ApplicationTypeEnum.COMPLETED.name())) {
                 if (applicationTotalPaymentDao.getByApplicationId(application.getId()) != null)
                     totalPayment = applicationTotalPaymentDao.getByApplicationId(application.getId()).getTotalPayment();
+                // isReview 체크
+              isReviewed = reviewDao.existsByWorkerIdAndJobIdAndReviewType(application.getUserId(),job.getId(),"WORKER");
             }
-            JobOverview jobOverview = JobOverview.builder().id(job.get().getId()).title(job.get().getTitle()).coordinate(coordinate).giver(giver).startAt(job.get().getStartAt()).endAt(job.get().getEndAt()).pay(job.get().getPay()).payType(job.get().getPayType()).totalPay(totalPayment).tags(jobTags).build();
+            JobOverview jobOverview = JobOverview.builder().id(job.getId()).title(job.getTitle()).coordinate(coordinate).giver(giver).startAt(job.getStartAt()).endAt(job.getEndAt()).pay(job.getPay()).payType(job.getPayType()).totalPay(totalPayment).tags(jobTags).build();
 
             //30분 이내라면 true로 변경
             boolean isRequestPossible = false;
+            if (nowTime.plusMinutes(30).isAfter(job.getStartAt())) isRequestPossible = true;
 
-            if (nowTime.plusMinutes(30).isAfter(job.get().getStartAt())) isRequestPossible = true;
-
-            APIApplicationHistory.Application responseApplication = new APIApplicationHistory.Application(application.getId(), application.getStatus(), jobOverview, isRequestPossible);
-            responseApplications.add(responseApplication);
+            responseApplications.add(new AhApplication(application.getId(), application.getStatus(), jobOverview, isRequestPossible,isReviewed));
         }
 
         Pagination pagination = new Pagination(applications.isLast(), page + 1, applications.getTotalElements());
 
-        APIApplicationHistory.Payload payload = null;
-        payload = new APIApplicationHistory.Payload(responseApplications, pagination);
-
+        AhPayload payload = new AhPayload(responseApplications, pagination);;
         BasicMeta meta = new BasicMeta(true, "");
         APIApplicationHistory apiApplicationHistory = new APIApplicationHistory(payload, meta);
         response = new ResponseEntity<>(apiApplicationHistory, HttpStatus.OK);
@@ -215,12 +210,6 @@ public class ApplicationService {
             } else {
                 application.get().setStatus(ApplicationTypeEnum.HIRED_APPROVED.name());
                 applicationDao.save(application.get());
-
-                if (job.get().getStatus().equals(JobTypeEnum.CLOSED.name())) {
-                    job.get().setStatus(JobTypeEnum.STARTED.name());
-                    jobDao.save(job.get());
-                }
-
                 String message = "알바가 시작되었습니다.";
                 error = new Response(new BasicMeta(true, message));
             }
@@ -264,37 +253,37 @@ public class ApplicationService {
         return response;
     }
 
-    public ResponseEntity getReceiptWorker(long id) {
-        ResponseEntity response = null;
-        Response error = null;
-
-        Application application = applicationDao.findById(id).orElseThrow();
-        Job job = jobDao.findById(application.getJobId()).orElseThrow();
-
-        // job tag
-        List<RwJobTag> responseJobTags = new ArrayList<>();
-        List<JobTag> jobTagList = jobTagDao.findByJobId(job.getId());
-        for (JobTag jobTag : jobTagList)
-            responseJobTags.add(new RwJobTag(jobTag.getContents()));
-
-        // giver
-        User giver = userDao.findById(job.getUserId()).orElseThrow();
-        RwUser responseUser = new RwUser(giver.getId(), giver.getProfileImg());
-
-        //totalPayment
-        int totalPayment = applicationTotalPaymentDao.getByApplicationId(id).getTotalPayment();
-        RwJob responseJob = new RwJob(job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), totalPayment, responseJobTags, responseUser);
-
-        // isReview 체크
-        boolean isReview = reviewDao.existsByWorkerIdAndJobIdAndReviewType(application.getUserId(),job.getId(),"WORKER");
-        RwApplication responseApplication = new RwApplication(application.getId(), isReview, responseJob);
-
-        RwPayload payload = new RwPayload(responseApplication);
-        BasicMeta meta = new BasicMeta(true, "");
-
-        response = new ResponseEntity<>(new APIReceiptWorker(payload, meta), HttpStatus.OK);
-        return response;
-    }
+//    public ResponseEntity getReceiptWorker(long id) {
+//        ResponseEntity response = null;
+//        Response error = null;
+//
+//        Application application = applicationDao.findById(id).orElseThrow();
+//        Job job = jobDao.findById(application.getJobId()).orElseThrow();
+//
+//        // job tag
+//        List<RwJobTag> responseJobTags = new ArrayList<>();
+//        List<JobTag> jobTagList = jobTagDao.findByJobId(job.getId());
+//        for (JobTag jobTag : jobTagList)
+//            responseJobTags.add(new RwJobTag(jobTag.getContents()));
+//
+//        // giver
+//        User giver = userDao.findById(job.getUserId()).orElseThrow();
+//        RwGiver responseUser = new RwGiver(giver.getId(), giver.getProfileImg());
+//
+//        //totalPayment
+//        int totalPayment = applicationTotalPaymentDao.getByApplicationId(id).getTotalPayment();
+//        RwJob responseJob = new RwJob(job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), totalPayment, responseJobTags, responseUser);
+//
+//        // isReview 체크
+//        boolean isReview = reviewDao.existsByWorkerIdAndJobIdAndReviewType(application.getUserId(),job.getId(),"WORKER");
+//        RwApplication responseApplication = new RwApplication(application.getId(), isReview, responseJob);
+//
+//        RwPayload payload = new RwPayload(responseApplication);
+//        BasicMeta meta = new BasicMeta(true, "");
+//
+//        response = new ResponseEntity<>(new APIReceiptWorker(payload, meta), HttpStatus.OK);
+//        return response;
+//    }
 
     public ResponseEntity updateAppliedCancel(long id) {
 

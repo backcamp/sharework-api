@@ -48,17 +48,17 @@ public class APIReceiptWorker {
 
 		public List<RwJobTag> jobTags;
 
-		public RwUser user;
+		public RwGiver giver;
 
 		public RwJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, int totalPayment, List<RwJobTag> jobTags,
-					 RwUser user) {
+					 RwGiver giver) {
 			this.id = id;
 			this.title = title;
 			this.startAt = startAt;
 			this.endAt = endAt;
 			this.totalPayment = totalPayment;
 			this.jobTags = jobTags;
-			this.user = user;
+			this.giver = giver;
 		}
 	}
 
@@ -85,14 +85,14 @@ public class APIReceiptWorker {
 		}
 	}
 
-	public static class RwUser {
+	public static class RwGiver {
 		@Column(name = "name")
 		public long name;
 
 		@Column(name = "profileImg")
 		public String profileImg;
 
-		public RwUser(long name, String profileImg) {
+		public RwGiver(long name, String profileImg) {
 			this.name = name;
 			this.profileImg = profileImg;
 		}
