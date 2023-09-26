@@ -21,12 +21,8 @@ import com.sharework.request.model.SignupRequestPw;
 import com.sharework.response.model.*;
 import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
-import com.sharework.response.model.tag.APIGetTagRank;
-import com.sharework.response.model.tag.APIGetTagRank.APIGetTagRankPayload;
 import com.sharework.response.model.tag.JobTagRank;
 import com.sharework.response.model.tag.TagRank;
-import com.sharework.response.model.user.APIGetUser;
-import com.sharework.response.model.user.APIGetUser.APIGetUserPayload;
 import com.sharework.response.model.user.Giver;
 import com.sharework.response.model.user.Profile;
 import javassist.NotFoundException;
@@ -252,10 +248,7 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
-    public ResponseEntity getUser(String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public Profile getUser(String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow(() -> new ResponseStatusException(HttpStatus.OK));
@@ -268,18 +261,12 @@ public class UserService {
         userRate.ifPresent(userRating -> {
             profile.setRate(userRating.getRate());
         });
-        BasicMeta meta = new BasicMeta(true, "");
-        APIGetUser apiGetUser = new APIGetUser(new APIGetUserPayload(profile), meta);
-        response = new ResponseEntity<>(apiGetUser, HttpStatus.OK);
-        return response;
+
+        return profile;
     }
 
     @Transactional
-    public ResponseEntity updateUser(String accessToken, APIUpdateUser request) {
-
-        ResponseEntity response = null;
-        Response error = null;
-
+    public void updateUser(String accessToken, APIUpdateUser request) {
         long userId = identification.getHeadertoken(accessToken);
 
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
@@ -288,18 +275,9 @@ public class UserService {
            user.setName(request.getName());
         if(request.getComment() != null)
            user.setComment(request.getComment());
-
-        BasicMeta meta = new BasicMeta(true, "정보가 수정되었습니다.");
-        SuccessResponse successResponse = new SuccessResponse(meta);
-        response = new ResponseEntity<>(successResponse, HttpStatus.OK);
-        return response;
     }
 
-    public ResponseEntity getTagRank(String accessToken) {
-
-        ResponseEntity response = null;
-        Response error = null;
-
+    public List<TagRank> getTagRank(String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
@@ -336,16 +314,10 @@ public class UserService {
             });
         }
 
-        BasicMeta meta = new BasicMeta(true, "");
-        APIGetTagRank apiGetTagRank = new APIGetTagRank(new APIGetTagRankPayload(tagRankList), meta);
-        response = new ResponseEntity<>(apiGetTagRank, HttpStatus.OK);
-        return response;
+        return tagRankList;
     }
 
-    public ResponseEntity insertImg(String accessToken, MultipartFile multipartFile) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public boolean insertImg(String accessToken, MultipartFile multipartFile) {
         long userId = identification.getHeadertoken(accessToken);
         userDao.findByIdAndDeleteYn(userId, "N").ifPresent(selectUser -> {
             if (selectUser.getProfileImg() != null)
@@ -384,22 +356,17 @@ public class UserService {
         }
 
         //user 프로필 url 저장.
-        final BasicMeta meta = new BasicMeta();
-        userDao.findByIdAndDeleteYn(userId, "N").ifPresentOrElse(user -> {
+        Optional<User> userOptional = userDao.findByIdAndDeleteYn(userId, "N");
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
             String imagePath = amazonS3.getUrl(bucket, title).toString();
             user.setProfileImg(imagePath);
             user.setImgTitle(title);
             userDao.save(user);
-            meta.setStatus(true);
-            meta.setMessage("이미지가 성공적으로 저장되었습니다.");
-        }, () -> {
-            meta.setStatus(false);
-            meta.setMessage("유저 정보가 존재하지 않습니다.");
-        });
-
-        SuccessResponse result = new SuccessResponse(meta);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public ResponseEntity withDrawal(String accessToken, String refreshToken) {
@@ -460,60 +427,40 @@ public class UserService {
         return response;
     }
 
-    public ResponseEntity getImg(String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public String getImg(String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
-        final ImgPayload imgPayload = new ImgPayload();
-        final BasicMeta meta = new BasicMeta();
-        userDao.findByIdAndDeleteYn(userId, "N").ifPresentOrElse(profileUser -> {
-            imgPayload.setProfileImg(profileUser.getProfileImg());
-            meta.setStatus(true);
-            meta.setMessage("");
-        }, () -> {
-            meta.setStatus(false);
-            meta.setMessage("유저 정보가 존재하지 않습니다.");
-        });
-
-        ImgResponse imgResponse = new ImgResponse(meta, imgPayload);
-        response = new ResponseEntity<>(imgResponse, HttpStatus.OK);
-        return response;
+        Optional<User> userOptional = userDao.findByIdAndDeleteYn(userId, "N");
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            return user.getProfileImg();
+        } else {
+            return "";
+        }
     }
 
-    public ResponseEntity deleteImg(String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public boolean deleteImg(String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
-        final BasicMeta meta = new BasicMeta();
-        userDao.findByIdAndDeleteYn(userId, "N").ifPresentOrElse(profileUser -> {
-            String fileName = profileUser.getImgTitle();
+        Optional<User> userOptional = userDao.findByIdAndDeleteYn(userId, "N");
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            String fileName = user.getImgTitle();
 
             //이미지가 존재하지 않을 경우.
             if (fileName == null) {
-                meta.setStatus(false);
-                meta.setMessage("이미지가 존재하지 않습니다.");
-                return;
+                return false;
             }
 
             amazonS3.deleteObject(bucket, fileName);
 
             //user profleImg null로 변경
-            profileUser.setProfileImg(null);
-            profileUser.setImgTitle(null);
-            userDao.save(profileUser);
-            meta.setStatus(true);
-            meta.setMessage("성공적으로 삭제하였습니다.");
-        }, () -> {
-            meta.setStatus(false);
-            meta.setMessage("유저 정보가 존재하지 않습니다.");
-        });
-
-        SuccessResponse successResponse = new SuccessResponse(meta);
-        response = new ResponseEntity<>(successResponse, HttpStatus.OK);
-        return response;
+            user.setProfileImg(null);
+            user.setImgTitle(null);
+            userDao.save(user);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

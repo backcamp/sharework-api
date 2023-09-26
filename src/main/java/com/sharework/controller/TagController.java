@@ -31,25 +31,23 @@ public class TagController {
 			@ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class) })
 	@GetMapping(value = "/tag", produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiOperation(httpMethod = "GET", value = "태그 목록을 제공한다.", notes = "give tagList")
-	public ResponseEntity<?> giveTagList() {
+	public ResponseEntity<GiveTagListResponse> giveTagList() {
 		List<giveTag> tagList = tagService.giveTagList();
 
 		BasicMeta meta = new BasicMeta(true, "태그리스트 제공이 완료되었습니다.");
 		GiveTagListPayload giveTagListPayload = new GiveTagListPayload(tagList);
-		GiveTagListResponse giveTagListResponse = new GiveTagListResponse(giveTagListPayload, meta);
-		return new ResponseEntity<>(giveTagListResponse, HttpStatus.OK);
+		return ResponseEntity.ok(new GiveTagListResponse(giveTagListPayload, meta));
 	}
 
 	@ApiResponses({ @ApiResponse(code = 200, message = "SUCCESS", response = GiveTagListResponse.class),
 		@ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class) })
 	@GetMapping(value = "/alltag", produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiOperation(httpMethod = "GET", value = "전체 태그 목록을 제공한다.", notes = "give allTagList")
-	public ResponseEntity<?> giveAllTagList() {
+	public ResponseEntity<GiveTagListResponse> giveAllTagList() {
 		List<giveTag> tagList = tagService.giveAllTagList();
 
 		BasicMeta meta = new BasicMeta(true, "전체 태그리스트 제공이 완료되었습니다.");
 		GiveTagListPayload giveTagListPayload = new GiveTagListPayload(tagList);
-		GiveTagListResponse giveTagListResponse = new GiveTagListResponse(giveTagListPayload, meta);
-		return new ResponseEntity<>(giveTagListResponse, HttpStatus.OK);
+		return ResponseEntity.ok(new GiveTagListResponse(giveTagListPayload, meta));
 	}
 }
