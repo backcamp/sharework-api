@@ -10,9 +10,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ImgResponse {
-	public ImgResponse(BasicMeta meta, ImgPayload payload) {
-		this.meta = meta;
+	public ImgResponse(ImgPayload payload, BasicMeta meta) {
 		this.payload = payload;
+		this.meta = meta;
 	}
 
 	@ApiModelProperty(value = "payload", position = 2)
