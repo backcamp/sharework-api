@@ -41,11 +41,11 @@ public class RegistrationController {
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @PostMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "POST", value = "회원정보를 받아 회원가입 진행(access-token,refresh-token 발행)", notes = "insert user infomation")
-    public ResponseEntity<SuccessResponse> signUp(@Valid @RequestBody(required = true) SignupRequestPw request,
+    public ResponseEntity<SuccessResponse> signup(@Valid @RequestBody(required = true) SignupRequestPw request,
                                  BindingResult bindingResult) {
         BasicMeta meta;
         try {
-            userService.signUpPw(request, bindingResult);
+            userService.signupPw(request, bindingResult);
             meta = new BasicMeta(true, "회원가입이 완료되었습니다.");
         } catch (UserException e) {
             meta = new BasicMeta(true, e.getMessage());
@@ -56,7 +56,7 @@ public class RegistrationController {
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = SignUpResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
-    @PostMapping(value = "/login", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PostMapping(value = "/login", produces = {MediaType.APPLICATION_JSON_VALUE}) // FIXME: "/signin"
     @ApiOperation(httpMethod = "POST", value = "핸드폰 번호와 비밀번호받아 로그인 진행", notes = "Login")
     public ResponseEntity<VerifiedResponse> login(@Valid @RequestBody(required = true) SignInRequestPw request) {
         LoginObj loginObj = userService.login(request);
@@ -74,12 +74,12 @@ public class RegistrationController {
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = SuccessResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
-    @PostMapping(value = "/withDrawal",produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PostMapping(value = "/withDrawal",produces = {MediaType.APPLICATION_JSON_VALUE}) // FIXME: "/withdrawl"
     @ApiOperation(httpMethod = "POST", value = "토큰받아 회원탈퇴", notes = "WithDrawal")
-    public ResponseEntity<SuccessResponse> withDrawal(@RequestHeader("access-token") String accessToken,@RequestHeader("refresh-token") String refreshToken) {
+    public ResponseEntity<SuccessResponse> withdrawal(@RequestHeader("access-token") String accessToken,@RequestHeader("refresh-token") String refreshToken) { // FIXME: remove refreshToken
         BasicMeta meta;
         try {
-            userService.withDrawal(accessToken,refreshToken);
+            userService.withdrawal(accessToken,refreshToken);
             meta = new BasicMeta(true, "회원탈퇴가 성공하였습니다.");
         } catch (UserException e) {
             meta = new BasicMeta(false, e.getMessage());

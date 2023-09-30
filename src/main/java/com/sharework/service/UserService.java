@@ -121,7 +121,7 @@ public class UserService {
 //        return response;
 //    }
 
-    public void signUpPw(SignupRequestPw request, BindingResult bindingResult) {// vaild가 틀렸을 경우
+    public void signupPw(SignupRequestPw request, BindingResult bindingResult) {// vaild가 틀렸을 경우
         if (bindingResult.hasErrors()) {
             throw new UserException("정확한 정보를 기입해주세요.");
         } else if (userDao.existsByEmailAndDeleteYn(request.getEmail(), "N")) {
@@ -302,10 +302,10 @@ public class UserService {
         }
     }
 
-    public void withDrawal(String accessToken, String refreshToken) {
+    public void withdrawal(String accessToken, String refreshToken) {
         long userId = identification.getHeadertoken(accessToken);
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
-        String deleteYn = user.getDeleteYn(); // FIXME: meaningless. already an exception above.
+        String deleteYn = user.getDeleteYn(); // FIXME: already an exception above.
 
         if (deleteYn.equals("Y")) {
             throw new UserException("삭제된 회원입니다.");
