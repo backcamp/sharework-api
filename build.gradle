@@ -93,6 +93,9 @@ dependencies {
 
 	//sms인증문자API
 	implementation group: 'net.nurigo', name: 'javaSDK', version: '2.2'
+
+	// slack for errors
+	implementation group: 'com.github.maricn', name: 'logback-slack-appender', version: '1.6.1'
 }
 
 test {
