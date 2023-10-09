@@ -9,6 +9,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.sharework.common.ApplicationTypeEnum;
 import com.sharework.common.JobTypeEnum;
 import com.sharework.dao.*;
+import com.sharework.global.NotFoundException;
 import com.sharework.manager.CreateJwt;
 import com.sharework.manager.HashidsManager;
 import com.sharework.manager.JwtManager;
@@ -18,14 +19,15 @@ import com.sharework.request.model.APIUpdateUser;
 import com.sharework.request.model.LoginObj;
 import com.sharework.request.model.SignInRequestPw;
 import com.sharework.request.model.SignupRequestPw;
-import com.sharework.response.model.*;
+import com.sharework.response.model.SuccessResponse;
+import com.sharework.response.model.VerifiedPayload;
+import com.sharework.response.model.VerifiedResponse;
 import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.tag.JobTagRank;
 import com.sharework.response.model.tag.TagRank;
 import com.sharework.response.model.user.Giver;
 import com.sharework.response.model.user.Profile;
-import javassist.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -122,38 +124,15 @@ public class UserService {
 //        return response;
 //    }
 
-    public ResponseEntity signUpPw(SignupRequestPw request, BindingResult bindingResult) {
-
-        ResponseEntity response = null;
-        ErrorResponse error = null;
-        String errorMsg = null;
-        BasicMeta meta;
-
-        // vaild가 틀렸을 경우
+    public SuccessResponse signupPw(SignupRequestPw request, BindingResult bindingResult) {// vaild가 틀렸을 경우
         if (bindingResult.hasErrors()) {
-            errorMsg = "정확한 정보를 기입해주세요.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "정확한 정보를 기입해주세요."));
         } else if (userDao.existsByEmailAndDeleteYn(request.getEmail(), "N")) {
-            errorMsg = "이메일이 중복됩니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "이메일이 중복됩니다."));
         } else if (userDao.existsByPhoneNumberAndDeleteYn(request.getPhoneNumber(), "N")) {
-            errorMsg = "번호가 중복됩니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "번호가 중복됩니다."));
         } else if (userDao.existsByNameAndDeleteYn(request.getName(), "N")) {
-            errorMsg = "닉네임이 중복됩니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "닉네임이 중복됩니다."));
         }
 
         ResidentNumberJsonb residentNumber = null;
@@ -168,21 +147,10 @@ public class UserService {
         userDao.save(
                 User.builder().email(request.getEmail()).name(request.getName()).phoneNumber(request.getPhoneNumber())
                         .residentNumber(residentNumber).userType("worker").password(request.getPassword()).refreshToken(refreshToken).build());
-
-        meta = new BasicMeta(true, "회원가입이 완료되었습니다.");
-        SuccessResponse successResponse = new SuccessResponse(meta);
-        response = new ResponseEntity<>(successResponse, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "회원가입이 완료되었습니다."));
     }
 
-    public ResponseEntity login(SignInRequestPw request) {
-
-        ResponseEntity response = null;
-        ErrorResponse error = null;
-        String errorMsg = null;
-        BasicMeta meta;
-
-
+    public VerifiedResponse login(SignInRequestPw request) {
         Optional<User> user = userDao.findUserByPhoneNumberAndPasswordAndDeleteYn(request.getPhoneNumber(), request.getPassword(), "N");
         LoginObj loginObj = new LoginObj();
 
@@ -201,46 +169,24 @@ public class UserService {
 
         if (loginObj.getFlag()) {
             VerifiedPayload verifiedPayload = new VerifiedPayload(loginObj.getAccessToken(), loginObj.getRefreshToken(), loginObj.getUserType());
-            meta = new BasicMeta(true, "로그인 성공");
-            VerifiedResponse verifiedResponse = new VerifiedResponse(verifiedPayload, meta);
-            response = new ResponseEntity<>(verifiedResponse, HttpStatus.OK);
+            BasicMeta meta = new BasicMeta(true, "로그인 성공");
+
+            return new VerifiedResponse(verifiedPayload, meta);
         } else {
-            errorMsg = "로그인 정보가 일치하지 않습니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
+            throw new NotFoundException("로그인 정보가 일치하지 않습니다.");
         }
-        return response;
     }
 
-    public ResponseEntity checkNickname(String nickname) {
-
-        ResponseEntity response = null;
-        ErrorResponse error = null;
-        String errorMsg = null;
-        BasicMeta meta;
-
-
+    public SuccessResponse checkNickname(String nickname) {
         if (!Pattern.matches("^[가-힣a-zA-Z0-9]{1,6}$", nickname)) {
-            errorMsg = "사용 불가능한 닉네임입니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "사용 불가능한 닉네임입니다."));
         }
 
         if (userDao.existsByNameAndDeleteYn(nickname, "N")) {
-            errorMsg = "닉네임이 존재합니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "닉네임이 존재합니다."));
         }
 
-        meta = new BasicMeta(true, "사용 가능한 닉네임입니다.");
-        SuccessResponse successResponse = new SuccessResponse(meta);
-        response = new ResponseEntity<>(successResponse, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "사용 가능한 닉네임입니다."));
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -369,34 +315,22 @@ public class UserService {
         }
     }
 
-    public ResponseEntity withDrawal(String accessToken, String refreshToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public SuccessResponse withdrawal(String accessToken, String refreshToken) {
         long userId = identification.getHeadertoken(accessToken);
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
-        String deleteYn = user.getDeleteYn();
+        String deleteYn = user.getDeleteYn(); // FIXME: already an exception above.
 
         if (deleteYn.equals("Y")) {
-            String errorMsg = "삭제된 회원입니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "삭제된 회원입니다."));
         }
 
-        BasicMeta meta = new BasicMeta();
-
-        boolean flag = false;
         // 일감 오픈 및 진행중이라면 탈퇴불가
         ArrayList<String> jobStatusList = new ArrayList<>();
         jobStatusList.add(JobTypeEnum.OPEN.name());
         jobStatusList.add(JobTypeEnum.CLOSED.name());
         jobStatusList.add(JobTypeEnum.STARTED.name());
         if (jobDao.findByUserIdAndStatusIn(userId, jobStatusList).size() > 0) {
-            String errorMsg = "진행중인 일감 삭제 후 탈퇴진행해 주시기 바랍니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "진행중인 일감 삭제 후 탈퇴진행해 주시기 바랍니다."));
         }
 
         // hired_request,,hired_approved 일 마감하라는 에러 메시지 출력.
@@ -404,10 +338,7 @@ public class UserService {
         applicationFailedStatusList.add(ApplicationTypeEnum.HIRED_REQUEST.name());
         applicationFailedStatusList.add(ApplicationTypeEnum.HIRED_APPROVED.name());
         if (applicationDao.countByUserIdAndStatusIn(userId, applicationFailedStatusList) > 0) {
-            String errorMsg = "진행중인 일 처리 후 탈퇴진행해 주시기 바랍니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "진행중인 일 처리 후 탈퇴진행해 주시기 바랍니다."));
         }
 
         ArrayList<String> applicationSuccessStatusList = new ArrayList<>();
@@ -421,10 +352,7 @@ public class UserService {
             userDao.save(users);
         });
 
-        meta = new BasicMeta(true, "회원탈퇴가 성공하였습니다.");
-        SuccessResponse result = new SuccessResponse(meta);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "회원탈퇴가 성공하였습니다."));
     }
 
     public String getImg(String accessToken) {
