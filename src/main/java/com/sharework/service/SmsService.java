@@ -3,13 +3,13 @@ package com.sharework.service;
 import com.sharework.api.SendSmsApi;
 import com.sharework.common.SendSmsStatusCodeEnum;
 import com.sharework.dao.UserDao;
+import com.sharework.global.NotFoundException;
 import com.sharework.manager.CreateJwt;
 import com.sharework.manager.HashidsManager;
 import com.sharework.manager.JwtManager;
 import com.sharework.model.User;
 import com.sharework.model.sms.ReqParamsSendSms;
 import com.sharework.response.model.sms.SmsResponse;
-import com.sharework.response.model.ErrorResponse;
 import com.sharework.response.model.SendSmsResponse;
 import com.sharework.response.model.VerifiedPayload;
 import com.sharework.response.model.VerifiedResponse;
@@ -19,8 +19,6 @@ import com.sharework.response.model.sms.SmsPayload;
 import io.jsonwebtoken.Claims;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -44,7 +42,7 @@ public class SmsService {
     @Autowired
     CreateJwt createJwt;
 
-    public ResponseEntity sendSms(Map<String, String> params) {
+    public SendSmsResponse sendSms(Map<String, String> params) {
         String receiver = params.get("receiver");
 
         int randNum = 1000 + (int) (Math.random() * 8999);
@@ -55,7 +53,6 @@ public class SmsService {
         // 네이버 클라우드 플랫폼 응답 회신
         SmsResponse smsResponse = smsApi.sendSms(smsdto);
         JSONObject json = new JSONObject();
-        ResponseEntity response = null;
         BasicMeta meta;
 
         if (smsResponse.getStatusCode().equals("202")) {
@@ -73,20 +70,14 @@ public class SmsService {
             SmsPayload smsPayload = new SmsPayload(smsAuth);
             meta = new BasicMeta(true, "인증번호를 발송하였습니다.");
 
-            final SendSmsResponse result = new SendSmsResponse(smsPayload, meta);
-            response = new ResponseEntity<>(result, HttpStatus.OK);
+            return new SendSmsResponse(smsPayload, meta);
         } else {
-            String errCode = setErrCode(smsResponse.getStatusCode());
-            meta = new BasicMeta(false, errCode);
-            final ErrorResponse error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
+            throw new NotFoundException(setErrCode(smsResponse.getStatusCode()));
         }
-        return response;
     }
 
-    public ResponseEntity verifiedNumber(Map<String, String> params) {
+    public VerifiedResponse verifiedNumber(Map<String, String> params) {
         String token = params.get("token");
-        ResponseEntity response = null;
         BasicMeta meta;
         try {
             Claims payload = jwtManager.getPayload(token);
@@ -117,20 +108,13 @@ public class SmsService {
                     verifiedPayload = new VerifiedPayload(accessToken, refreshToken, userType);
                 }
                 meta = new BasicMeta(true, "");
-                final VerifiedResponse result = new VerifiedResponse(verifiedPayload, meta);
-                response = new ResponseEntity<>(result, HttpStatus.OK);
-                return response;
+                return new VerifiedResponse(verifiedPayload, meta);
             } else {
-                meta = new BasicMeta(false, "인증번호가 틀립니다.");
-                final ErrorResponse error = new ErrorResponse(meta);
-                response = new ResponseEntity<>(error, HttpStatus.OK);
+                throw new NotFoundException("인증번호가 틀립니다.");
             }
         } catch (Exception e) {
-            meta = new BasicMeta(false, e.getMessage());
-            final ErrorResponse error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
+            throw new NotFoundException(e.getMessage());
         }
-        return response;
     }
 
     private String setErrCode(String code) {
