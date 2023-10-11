@@ -132,13 +132,12 @@ public class UserService {
         } else if (userDao.existsByPhoneNumberAndDeleteYn(request.getPhoneNumber(), "N")) {
             return new SuccessResponse(new BasicMeta(false, "번호가 중복됩니다."));
         } else if (userDao.existsByNameAndDeleteYn(request.getName(), "N")) {
-            return new SuccessResponse(new BasicMeta(false, "닉네임이 중복됩니다."));
+            return new SuccessResponse(new BasicMeta(false, "이미 사용중인 닉네임 입니다. 다른 닉네임을 입력해 주세요."));
         }
 
         ResidentNumberJsonb residentNumber = null;
 
         if (request.getResidentNumberFront() != null && request.getResidentNumberRear() != null) {
-            System.out.println(123);
             residentNumber = new ResidentNumberJsonb(request.getResidentNumberFront(),
                     request.getResidentNumberRear());
         }
@@ -179,11 +178,11 @@ public class UserService {
 
     public SuccessResponse checkNickname(String nickname) {
         if (!Pattern.matches("^[가-힣a-zA-Z0-9]{1,6}$", nickname)) {
-            return new SuccessResponse(new BasicMeta(false, "사용 불가능한 닉네임입니다."));
+            return new SuccessResponse(new BasicMeta(false, "사용할 수 없는 닉네임입니다. 한글, 영문, 숫자로 구성된 6자이내 닉네임을 입력해 주세요"));
         }
 
         if (userDao.existsByNameAndDeleteYn(nickname, "N")) {
-            return new SuccessResponse(new BasicMeta(false, "닉네임이 존재합니다."));
+            return new SuccessResponse(new BasicMeta(false, "이미 사용중인 닉네임 입니다. 다른 닉네임을 입력해 주세요."));
         }
 
         return new SuccessResponse(new BasicMeta(true, "사용 가능한 닉네임입니다."));
