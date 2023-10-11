@@ -185,7 +185,7 @@ public class UserService {
             return new SuccessResponse(new BasicMeta(false, "이미 사용중인 닉네임 입니다. 다른 닉네임을 입력해 주세요."));
         }
 
-        return new SuccessResponse(new BasicMeta(true, ""));
+        return new SuccessResponse(new BasicMeta(true, "사용 가능한 닉네임입니다."));
     }
 
     @ExceptionHandler(NotFoundException.class)
