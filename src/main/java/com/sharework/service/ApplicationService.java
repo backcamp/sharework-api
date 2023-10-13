@@ -10,10 +10,12 @@ import com.sharework.response.model.Coordinate;
 import com.sharework.response.model.Pagination;
 import com.sharework.response.model.Response;
 import com.sharework.response.model.SuccessResponse;
-import com.sharework.response.model.application.APIApplicationHistory;
-import com.sharework.response.model.application.APIApplicationHistory.AhApplication;
-import com.sharework.response.model.application.APIApplicationHistory.AhPayload;
-import com.sharework.response.model.application.APIApplicationStatusOverview;
+import com.sharework.response.model.application.ApplicationHistoryResponse;
+import com.sharework.response.model.application.ApplicationHistoryResponse.AhApplication;
+import com.sharework.response.model.application.ApplicationHistoryResponse.AhPayload;
+import com.sharework.response.model.application.ApplicationStatusOverviewResponse;
+import com.sharework.response.model.application.ApplicationStatusOverviewResponse.ApplicationStatusOverviewPayload;
+import com.sharework.response.model.application.ApplicationStatusOverviewResponse.StatusOverview;
 import com.sharework.response.model.job.JobOverview;
 import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
@@ -133,9 +135,9 @@ public class ApplicationService {
         Pagination pagination = new Pagination(applications.isLast(), page + 1, applications.getTotalElements());
 
         AhPayload payload = new AhPayload(responseApplications, pagination);
-        ;
+
         BasicMeta meta = new BasicMeta(true, "");
-        APIApplicationHistory apiApplicationHistory = new APIApplicationHistory(payload, meta);
+        ApplicationHistoryResponse apiApplicationHistory = new ApplicationHistoryResponse(payload, meta);
         response = new ResponseEntity<>(apiApplicationHistory, HttpStatus.OK);
         return response;
     }
@@ -381,9 +383,9 @@ public class ApplicationService {
 
         int hiredCount = applicationDao.countByUserIdAndStatusIn(userId, hiredList);
 
-        APIApplicationStatusOverview.StatusOverview statusOverview = new APIApplicationStatusOverview.StatusOverview(appliedCount, hiredCount);
-        APIApplicationStatusOverview.Payload payload = new APIApplicationStatusOverview.Payload(statusOverview);
-        APIApplicationStatusOverview apiApplicationStatusOverview = new APIApplicationStatusOverview(payload, new BasicMeta(true, ""));
+        StatusOverview statusOverview = new StatusOverview(appliedCount, hiredCount);
+        ApplicationStatusOverviewPayload payload = new ApplicationStatusOverviewPayload(statusOverview);
+        ApplicationStatusOverviewResponse apiApplicationStatusOverview = new ApplicationStatusOverviewResponse(payload, new BasicMeta(true, ""));
         response = new ResponseEntity<>(apiApplicationStatusOverview, HttpStatus.OK);
         return response;
     }
