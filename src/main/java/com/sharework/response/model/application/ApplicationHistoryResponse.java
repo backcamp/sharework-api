@@ -5,20 +5,16 @@ import com.sharework.response.model.Pagination;
 import com.sharework.response.model.job.JobOverview;
 import com.sharework.response.model.meta.BasicMeta;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APIApplicationHistory {
-    public APIApplicationHistory(AhPayload payload, BasicMeta meta) {
+public class ApplicationHistoryResponse {
+    public ApplicationHistoryResponse(AhPayload payload, BasicMeta meta) {
         this.payload = payload;
         this.meta = meta;
     }

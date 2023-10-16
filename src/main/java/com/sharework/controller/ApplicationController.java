@@ -2,14 +2,13 @@ package com.sharework.controller;
 
 import com.sharework.request.model.APIApplicationApplied;
 import com.sharework.response.model.Response;
-import com.sharework.response.model.application.APIApplicationHistory;
-import com.sharework.response.model.job.APIReceiptGiver;
+import com.sharework.response.model.application.ApplicationHistoryResponse;
+import com.sharework.response.model.application.ApplicationStatusOverviewResponse;
 import com.sharework.service.ApplicationService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +33,7 @@ public class ApplicationController {
         return applicationService.insertApplication(application, accessToken);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIApplicationHistory.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = ApplicationHistoryResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "status별로 application list 호출")
@@ -97,7 +96,7 @@ public class ApplicationController {
         return applicationService.updateRejected(id);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = Response.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = ApplicationStatusOverviewResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "/summary", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "지원 현황 요약")

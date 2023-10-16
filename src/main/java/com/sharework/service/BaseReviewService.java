@@ -6,7 +6,9 @@ import com.sharework.manager.TokenIdentification;
 import com.sharework.model.User;
 import com.sharework.model.model.BaseReview;
 import com.sharework.response.model.Response;
-import com.sharework.response.model.base_review.APIBaseReview;
+import com.sharework.response.model.base_review.BaseReviewResponse;
+import com.sharework.response.model.base_review.BaseReviewResponse.BaseReviewDto;
+import com.sharework.response.model.base_review.BaseReviewResponse.BaseReviewPayload;
 import com.sharework.response.model.meta.BasicMeta;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,16 +36,16 @@ public class BaseReviewService {
         String userType = user.getUserType().toLowerCase().equals("worker") ? "GIVER" : "WORKER";
         baseReviewList = baseReviewDao.getByUserType(userType.toUpperCase());
 
-        List<APIBaseReview.BaseReview> responseBaseReviews = new ArrayList<>();
+        List<BaseReviewDto> responseBaseReviews = new ArrayList<>();
 
         for (BaseReview baseReview : baseReviewList) {
-            responseBaseReviews.add(new APIBaseReview.BaseReview(baseReview.getId(), baseReview.getContents()));
+            responseBaseReviews.add(new BaseReviewDto(baseReview.getId(), baseReview.getContents()));
         }
 
-        APIBaseReview.Payload payload = new APIBaseReview.Payload(responseBaseReviews);
+        BaseReviewPayload payload = new BaseReviewPayload(responseBaseReviews);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new APIBaseReview(payload, meta), HttpStatus.OK);
+        response = new ResponseEntity<>(new BaseReviewResponse(payload, meta), HttpStatus.OK);
         return response;
     }
 }
