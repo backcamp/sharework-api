@@ -37,9 +37,9 @@ public class Schedule {
         //시작시간이 현재시간을 넘긴 공고(status = CLOSED)에서 지원한 지원서 APPLIED -> FAILED
         List<Application> applicationList = applicationDao.getStartedStatus();
         applicationList.forEach(item -> item.setStatus(ApplicationTypeEnum.FAILED.name()));
-        //시작시간이 현재시간을 넘은 OPEN인 공고 OPEN 중 %HIRED%가 있다면 STARTED, 없다면 failed
+
+        //시작시간이 현재시간을 넘은 OPEN,CLOSED인 공고 OPEN 중 %HIRED%가 있다면 STARTED, 없다면 failed
         List<Job> jobList = jobDao.getStartTimeJobs();
-        LocalDateTime now = LocalDateTime.now();
         jobList.forEach(item -> {
             if (applicationDao.countByJobIdAndStatusContaining(item.getId(), ApplicationTypeEnum.HIRED.name()) > 0) {
                 item.setStatus(JobTypeEnum.STARTED.name());
