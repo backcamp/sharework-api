@@ -93,10 +93,10 @@ public class JobService {
         long id = identification.getHeadertoken(accessToken);
 
         // 시작 끝 날짜 localtime으로 변경 후 저장(끝나는 시간이 시작보다 작을 시 끝나는 시간은 다음날로 변경)
-        String startAt = registerJob.getDateAt() + " " + registerJob.getStartAt();
-        String endAt = registerJob.getDateAt() + " " + registerJob.getEndAt();
+        String startAt = registerJob.getStartAt();
+        String endAt = registerJob.getEndAt();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss");
         LocalDateTime startTime = LocalDateTime.parse(startAt, formatter);
         LocalDateTime endTime = LocalDateTime.parse(endAt, formatter);
 
