@@ -5,14 +5,11 @@ import com.sharework.dao.UserDao;
 import com.sharework.manager.TokenIdentification;
 import com.sharework.model.User;
 import com.sharework.model.model.BaseReview;
-import com.sharework.response.model.Response;
 import com.sharework.response.model.base_review.BaseReviewResponse;
 import com.sharework.response.model.base_review.BaseReviewResponse.BaseReviewDto;
 import com.sharework.response.model.base_review.BaseReviewResponse.BaseReviewPayload;
 import com.sharework.response.model.meta.BasicMeta;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +22,7 @@ public class BaseReviewService {
     private final TokenIdentification identification;
     private final UserDao userDao;
 
-    public ResponseEntity getBaseReviewList(String accessToken) {
-
-        ResponseEntity response = null;
-        Response error = null;
-
+    public BaseReviewResponse getBaseReviewList(String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
         User user = userDao.findByIdAndDeleteYn(userId,"N").orElseThrow();
         List<BaseReview> baseReviewList = null;
@@ -45,7 +38,6 @@ public class BaseReviewService {
         BaseReviewPayload payload = new BaseReviewPayload(responseBaseReviews);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new BaseReviewResponse(payload, meta), HttpStatus.OK);
-        return response;
+        return new BaseReviewResponse(payload, meta);
     }
 }
