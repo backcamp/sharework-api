@@ -13,6 +13,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException e) {
 
         BasicMeta meta = new BasicMeta(false, e.getMessage());
-        return ResponseEntity.ok(new ErrorResponse(meta));
+        return ResponseEntity.ok(new ErrorResponse(meta)); // FIXME: change to ResponseEntity.notFound()
     }
 }

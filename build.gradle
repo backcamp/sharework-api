@@ -97,6 +97,9 @@ dependencies {
 
 	// slack for errors
 	implementation group: 'com.github.maricn', name: 'logback-slack-appender', version: '1.6.1'
+
+	// firebase cloud messaging
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
 }
 
 test {
