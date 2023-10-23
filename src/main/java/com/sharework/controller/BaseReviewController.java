@@ -41,8 +41,9 @@ public class BaseReviewController {
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "리뷰 체크리스트를 제공한다.", notes = "get baseReviewList")
-    public ResponseEntity giveReviewCheckList(@RequestHeader("access-token") String accessToken) {
-        return baseReviewService.getBaseReviewList(accessToken);
+    public ResponseEntity<BaseReviewResponse> giveReviewCheckList(@RequestHeader("access-token") String accessToken) {
+        BaseReviewResponse response = baseReviewService.getBaseReviewList(accessToken);
+        return ResponseEntity.ok(response);
     }
 
 }
