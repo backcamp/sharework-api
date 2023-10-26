@@ -13,8 +13,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APIPreviousJobs {
-    public APIPreviousJobs(JobPreviousPayload payload, BasicMeta meta) {
+public class PreviousJobResponse {
+    public PreviousJobResponse(JobPreviousPayload payload, BasicMeta meta) {
         this.payload = payload;
         this.meta = meta;
     }
@@ -27,14 +27,14 @@ public class APIPreviousJobs {
 
     public static class JobPreviousPayload {
         @ApiModelProperty(value = "jobs")
-        public List<Job> jobs;
+        public List<PreviousJob> jobs;
 
-        public JobPreviousPayload(List<Job> jobs) {
+        public JobPreviousPayload(List<PreviousJob> jobs) {
             this.jobs = jobs;
         }
     }
 
-    public static class Job {
+    public static class PreviousJob {
 
         @Column(name = "title")
         public String title;
@@ -69,7 +69,7 @@ public class APIPreviousJobs {
 
         public long personnel;
 
-        public Job(String title, LocalDateTime startAt, LocalDateTime endAt, String payType, Integer pay, String contents, LocalDateTime createdAt, double lat, double lng,
+        public PreviousJob(String title, LocalDateTime startAt, LocalDateTime endAt, String payType, Integer pay, String contents, LocalDateTime createdAt, double lat, double lng,
                    String addressDetail, List<String> checklist, List<String> tags, long personnel) {
             this.title = title;
             this.startAt = startAt;
@@ -84,15 +84,6 @@ public class APIPreviousJobs {
             this.checklist = checklist;
             this.tags = tags;
             this.personnel = personnel;
-        }
-    }
-
-    public static class JobBenefit {
-        @Column(name = "contents")
-        public String contents;
-
-        public JobBenefit(String contents) {
-            this.contents = contents;
         }
     }
 }

@@ -5,7 +5,6 @@ import com.sharework.model.JobTag;
 import com.sharework.response.model.Pagination;
 import com.sharework.response.model.meta.BasicMeta;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +17,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APICompletedList {
-    public APICompletedList(JobCompletedPayload payload, BasicMeta meta) {
+public class CompletedListResponse {
+    public CompletedListResponse(JobCompletedPayload payload, BasicMeta meta) {
         this.payload = payload;
         this.meta = meta;
     }

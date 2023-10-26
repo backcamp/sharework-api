@@ -12,26 +12,48 @@ import com.sharework.request.model.JobLocation;
 import com.sharework.request.model.RegisterJob;
 import com.sharework.response.model.*;
 import com.sharework.response.model.job.*;
-import com.sharework.response.model.job.APICompletedList.CompletedJob;
-import com.sharework.response.model.job.APICompletedList.JobCompletedPayload;
-import com.sharework.response.model.job.APIPreviousJobs.JobPreviousPayload;
-import com.sharework.response.model.job.APIProceedingList.JobProceedingPayload;
-import com.sharework.response.model.job.APIProceedingList.ProceedingJob;
-import com.sharework.response.model.job.APIProceedingList.ProceedingGroupStatus;
+import com.sharework.response.model.job.CompletedListResponse.CompletedJob;
+import com.sharework.response.model.job.CompletedListResponse.JobCompletedPayload;
+import com.sharework.response.model.job.AppliedListResponse.AppliedListApplication;
+import com.sharework.response.model.job.AppliedListResponse.AppliedListApplicationChecklist;
+import com.sharework.response.model.job.AppliedListResponse.AppliedListMeta;
+import com.sharework.response.model.job.AppliedListResponse.AppliedListPagination;
+import com.sharework.response.model.job.AppliedListResponse.AppliedListPayload;
+import com.sharework.response.model.job.AppliedListResponse.AppliedListUser;
+import com.sharework.response.model.job.AppliedListResponse.AppliedListWorker;
+import com.sharework.response.model.job.HiredListResponse.HiredListApplication;
+import com.sharework.response.model.job.HiredListResponse.HiredListApplicationChecklist;
+import com.sharework.response.model.job.HiredListResponse.HiredListMeta;
+import com.sharework.response.model.job.HiredListResponse.HiredListPayload;
+import com.sharework.response.model.job.PreviousJobResponse.PreviousJob;
+import com.sharework.response.model.job.PreviousJobResponse.JobPreviousPayload;
+import com.sharework.response.model.job.ProceedingListResponse.JobProceedingPayload;
+import com.sharework.response.model.job.ProceedingListResponse.ProceedingJob;
+import com.sharework.response.model.job.ProceedingListResponse.ProceedingGroupStatus;
+import com.sharework.response.model.job.HiredListResponse.HiredListUser;
+import com.sharework.response.model.job.HiredListResponse.HiredListWorker;
+import com.sharework.response.model.job.JobClusterDetailResponse.JobClusterDetailPagination;
+import com.sharework.response.model.job.JobClusterDetailResponse.JobClusterDetailPayload;
+import com.sharework.response.model.job.JobDetailResponse.JobDetailCoordinate;
+import com.sharework.response.model.job.JobDetailResponse.JobDetailJob;
+import com.sharework.response.model.job.JobDetailResponse.JobDetailJobBenefit;
+import com.sharework.response.model.job.JobDetailResponse.JobDetailJobChecklist;
+import com.sharework.response.model.job.JobDetailResponse.JobDetailJobTag;
+import com.sharework.response.model.job.JobDetailResponse.JobDetailPayload;
+import com.sharework.response.model.job.JobDetailResponse.JobDetailUser;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.sharework.response.model.job.APICompletedList.CompletedGroupStatus;
-import com.sharework.response.model.job.APIReceiptGiver.RgApplicationOverview;
-import com.sharework.response.model.job.APIReceiptGiver.RgUser;
-import com.sharework.response.model.job.APIReceiptGiver.RgWorker;
-import com.sharework.response.model.job.APIReceiptGiver.RgPayload;
+import com.sharework.response.model.job.CompletedListResponse.CompletedGroupStatus;
+import com.sharework.response.model.job.ReceiptGiverResponse.RgApplicationOverview;
+import com.sharework.response.model.job.ReceiptGiverResponse.RgUser;
+import com.sharework.response.model.job.ReceiptGiverResponse.RgWorker;
+import com.sharework.response.model.job.ReceiptGiverResponse.RgPayload;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -80,7 +102,7 @@ public class JobService {
 
         JobsPayload jobPayload = new JobsPayload(mainJobsResponse);
         meta = new BasicMeta(true, "공고 목록을 성공적으로 전달하였습니다.");
-        final JobsResponse result = new JobsResponse(jobPayload, meta);
+        final JobResponse result = new JobResponse(jobPayload, meta);
         response = new ResponseEntity<>(result, HttpStatus.OK);
         return response;
     }
@@ -159,9 +181,9 @@ public class JobService {
                     .build());
         }
 
-        APIJobClusterDetail.Pagination pagination = new APIJobClusterDetail.Pagination(job.isLast(), job.getTotalPages(), jobDetail.getPage());
-        APIJobClusterDetail.Payload payload = new APIJobClusterDetail.Payload(jobOverviewList, pagination);
-        APIJobClusterDetail apiJobClusterDetail = new APIJobClusterDetail(payload, new BasicMeta(true, ""));
+        JobClusterDetailPagination pagination = new JobClusterDetailPagination(job.isLast(), job.getTotalPages(), jobDetail.getPage());
+        JobClusterDetailPayload payload = new JobClusterDetailPayload(jobOverviewList, pagination);
+        JobClusterDetailResponse apiJobClusterDetail = new JobClusterDetailResponse(payload, new BasicMeta(true, ""));
         response = new ResponseEntity<>(apiJobClusterDetail, HttpStatus.OK);
         return response;
     }
@@ -194,29 +216,29 @@ public class JobService {
 
         // giver user
         Optional<User> user = userDao.findByIdAndDeleteYn(job.get().getUserId(), "N");
-        Optional<APIJobDetail.User> responseUser = Optional.of(new APIJobDetail.User(user.get().getId(), user.get().getName(), user.get().getProfileImg()));
+        Optional<JobDetailUser> responseUser = Optional.of(new JobDetailUser(user.get().getId(), user.get().getName(), user.get().getProfileImg()));
 
         // 제공사항
         List<JobBenefit> benefits = jobBenefitDao.findByJobId(id);
-        List<APIJobDetail.JobBenefit> responseBenefits = new ArrayList<>();
+        List<JobDetailJobBenefit> responseBenefits = new ArrayList<>();
         for (JobBenefit benefit : benefits) {
 //            benefit.getBaseBenefitId()
             Optional<BaseBenefit> baseJobBenefit = baseBenefitDao.findById(benefit.getBaseBenefitId());
-            responseBenefits.add(new APIJobDetail.JobBenefit(baseJobBenefit.get().getContents()));
+            responseBenefits.add(new JobDetailJobBenefit(baseJobBenefit.get().getContents()));
         }
 
         // 태그
         List<JobTag> tags = jobTagDao.findByJobId(id);
-        List<APIJobDetail.JobTag> responseTags = new ArrayList<>();
+        List<JobDetailJobTag> responseTags = new ArrayList<>();
         for (JobTag tag : tags) {
-            responseTags.add(new APIJobDetail.JobTag(tag.getId(), tag.getContents()));
+            responseTags.add(new JobDetailJobTag(tag.getId(), tag.getContents()));
         }
 
         // 체크리스트
         List<JobCheckList> checkLists = jobCheckListDao.findByJobId(id);
-        List<APIJobDetail.JobChecklist> responseChecklists = new ArrayList<>();
+        List<JobDetailJobChecklist> responseChecklists = new ArrayList<>();
         for (JobCheckList checkList : checkLists)
-            responseChecklists.add(new APIJobDetail.JobChecklist(checkList.getCheckListId(), checkList.getContents()));
+            responseChecklists.add(new JobDetailJobChecklist(checkList.getCheckListId(), checkList.getContents()));
 
 
         //worker라면 addressDetail이 HIRED...,COMPLETED 일 경우에만 나와야한다.
@@ -232,8 +254,8 @@ public class JobService {
         if (userType.equals("worker") && !accessAddressDetailStatus.contains(jobStatus))
             accessAddressDetail = false;
 
-        APIJobDetail.Coordinate coordinate = new APIJobDetail.Coordinate(job.get().getLat(), job.get().getLng());
-        Optional<APIJobDetail.Job> responseJob = Optional.of(new APIJobDetail.Job(job.get().getId(), job.get().getTitle(), job.get().getStartAt(),
+        JobDetailCoordinate coordinate = new JobDetailCoordinate(job.get().getLat(), job.get().getLng());
+        Optional<JobDetailJob> responseJob = Optional.of(new JobDetailJob(job.get().getId(), job.get().getTitle(), job.get().getStartAt(),
                 job.get().getEndAt(), coordinate, job.get().getAddress(), accessAddressDetail ? job.get().getAddressDetail() : null,
                 job.get().getPersonnel(), job.get().getPayType(), job.get().getPay(), job.get().getContents(), job.get().getStatus(),
                 responseUser.get(), responseBenefits, responseTags, responseChecklists));
@@ -242,8 +264,8 @@ public class JobService {
         Application application = applicationDao.findByJobIdAndUserId(job.get().getId(), userId);
         boolean didApply = !Objects.isNull(application);
 
-        APIJobDetail.Payload payload = new APIJobDetail.Payload(responseJob.get(), didApply);
-        APIJobDetail apiJobDetail = new APIJobDetail(payload, new BasicMeta(true, ""));
+        JobDetailPayload payload = new JobDetailPayload(responseJob.get(), didApply);
+        JobDetailResponse apiJobDetail = new JobDetailResponse(payload, new BasicMeta(true, ""));
 
         response = new ResponseEntity<>(apiJobDetail, HttpStatus.OK);
         return response;
@@ -263,7 +285,7 @@ public class JobService {
 
         List<Application> applications = applicationDao.findByJobIdAndStatusIn(id, status);
 
-        List<APIHiredList.Application> responseApplications = new ArrayList<>();
+        List<HiredListApplication> responseApplications = new ArrayList<>();
         List<JobCheckList> jobCheckLists = jobCheckListDao.findByJobId(id);
         for (Application application : applications) {
 
@@ -273,7 +295,7 @@ public class JobService {
             int experienceCount = applicationDao.countByUserIdAndStatus(user.get().getId(), ApplicationTypeEnum.COMPLETED.name()); // 경력
             int absenceCount = applicationDao.countByUserIdAndStatus(user.get().getId(), ApplicationTypeEnum.NO_SHOW.name()); // 결근
 
-            Optional<APIHiredList.Worker> responseUser = Optional.of(new APIHiredList.Worker(new APIHiredList.User(user.get().getId(), user.get().getName(),
+            Optional<HiredListWorker> responseUser = Optional.of(new HiredListWorker(new HiredListUser(user.get().getId(), user.get().getName(),
                     user.get().getProfileImg()), experienceCount, absenceCount));
 
             Boolean isAction = false;
@@ -283,7 +305,7 @@ public class JobService {
 
             // 지원서 체크리스트
             List<ApplicationChecklist> applicationChecklists = applicationChecklistDao.findByApplicationId(application.getId());
-            List<APIHiredList.ApplicationChecklist> responseApplicationChecklists = new ArrayList<>();
+            List<HiredListApplicationChecklist> responseApplicationChecklists = new ArrayList<>();
             for (JobCheckList jobCheckList : jobCheckLists) {
                 boolean isChecked = false;
                 long useJobCheckList = applicationChecklists.stream().filter(applicationChecklist -> applicationChecklist.getJobChecklistId() == jobCheckList.getCheckListId()).count();
@@ -298,19 +320,19 @@ public class JobService {
 //                }
 
 //                Optional<UserChecklist> userChecklist = userChecklistDao.findByid(jobCheckList.getCheckListId());
-                responseApplicationChecklists.add(new APIHiredList.ApplicationChecklist(jobCheckList.getContents(), isChecked));
+                responseApplicationChecklists.add(new HiredListApplicationChecklist(jobCheckList.getContents(), isChecked));
             }
 
-            Optional<APIHiredList.Application> responseApplication = Optional.of(new APIHiredList.Application(
+            Optional<HiredListApplication> responseApplication = Optional.of(new HiredListApplication(
                     application.getId(), application.getStatus(), responseUser.get(), responseApplicationChecklists));
 
             responseApplications.add(responseApplication.get());
         }
         Pagination pagination = new Pagination(true, 1, 20);     //TODO: 정상로직으로 수정필요 빌드만 되도록 수정해 놓음
-        APIHiredList.Payload payload = new APIHiredList().new Payload(responseApplications, pagination);
-        APIHiredList.Meta meta = new APIHiredList.Meta(true, "", applications.size());
+        HiredListPayload payload = new HiredListPayload(responseApplications, pagination);
+        HiredListMeta meta = new HiredListMeta(true, "", applications.size());
 
-        response = new ResponseEntity<>(new APIHiredList(payload, meta), HttpStatus.OK);
+        response = new ResponseEntity<>(new HiredListResponse(payload, meta), HttpStatus.OK);
         return response;
     }
 
@@ -324,7 +346,7 @@ public class JobService {
         Page<Application> applications = applicationDao.findByJobIdAndApplied(id, ApplicationTypeEnum.APPLIED.name(), pageRequest);
 
 
-        List<APIAppliedList.Application> responseApplications = new ArrayList<>();
+        List<AppliedListApplication> responseApplications = new ArrayList<>();
         List<JobCheckList> jobCheckLists = jobCheckListDao.findByJobId(id);
 
         for (Application application : applications) {
@@ -334,12 +356,12 @@ public class JobService {
             int experienceCount = applicationDao.countByUserIdAndStatus(user.get().getId(), ApplicationTypeEnum.COMPLETED.name()); // 경력
             int absenceCount = applicationDao.countByUserIdAndStatus(user.get().getId(), ApplicationTypeEnum.NO_SHOW.name()); // 결근
 
-            Optional<APIAppliedList.Worker> responseUser = Optional.of(new APIAppliedList.Worker(new APIAppliedList.User(user.get().getId(), user.get().getName(),
+            Optional<AppliedListWorker> responseUser = Optional.of(new AppliedListWorker(new AppliedListUser(user.get().getId(), user.get().getName(),
                     user.get().getProfileImg()), experienceCount, absenceCount));
 
             // 지원서 체크리스트
             List<ApplicationChecklist> applicationChecklists = applicationChecklistDao.findByApplicationId(application.getId());
-            List<APIAppliedList.ApplicationChecklist> responseApplicationChecklists = new ArrayList<>();
+            List<AppliedListApplicationChecklist> responseApplicationChecklists = new ArrayList<>();
 
             for (JobCheckList jobCheckList : jobCheckLists) {
                 boolean isChecked = false;
@@ -358,21 +380,21 @@ public class JobService {
 //                }
 
 //                Optional<UserChecklist> userChecklist = userChecklistDao.findByid(jobCheckList.getCheckListId());
-                responseApplicationChecklists.add(new APIAppliedList.ApplicationChecklist(jobCheckList.getContents(), isChecked));
+                responseApplicationChecklists.add(new AppliedListApplicationChecklist(jobCheckList.getContents(), isChecked));
             }
 
-            Optional<APIAppliedList.Application> responseApplication = Optional.of(new APIAppliedList.Application(
+            Optional<AppliedListApplication> responseApplication = Optional.of(new AppliedListApplication(
                     application.getId(), application.getStatus(), responseUser.get(), responseApplicationChecklists));
 
             responseApplications.add(responseApplication.get());
         }
 //        new APIJobClusterDetail.Pagination(job.isLast(), job.getTotalPages(), jobDetail.getPage());
 
-        APIAppliedList.Pagination pagination = new APIAppliedList.Pagination(applications.isLast(), applications.getTotalPages(), appliedList.getPage());
-        APIAppliedList.Payload payload = new APIAppliedList().new Payload(responseApplications, pagination);
-        APIAppliedList.Meta meta = new APIAppliedList.Meta(true, "");
+        AppliedListPagination pagination = new AppliedListPagination(applications.isLast(), applications.getTotalPages(), appliedList.getPage());
+        AppliedListPayload payload = new AppliedListPayload(responseApplications, pagination);
+        AppliedListMeta meta = new AppliedListMeta(true, "");
 
-        response = new ResponseEntity<>(new APIAppliedList(payload, meta), HttpStatus.OK);
+        response = new ResponseEntity<>(new AppliedListResponse(payload, meta), HttpStatus.OK);
         return response;
     }
 
@@ -406,7 +428,7 @@ public class JobService {
         RgPayload payload = new RgPayload(responseApplications);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new APIReceiptGiver(payload, meta), HttpStatus.OK);
+        response = new ResponseEntity<>(new ReceiptGiverResponse(payload, meta), HttpStatus.OK);
         return response;
     }
 
@@ -416,7 +438,7 @@ public class JobService {
 
         long userId = identification.getHeadertoken(accessToken);
 
-        List<APIPreviousJobs.Job> responseJobs = new ArrayList<>();
+        List<PreviousJob> responseJobs = new ArrayList<>();
         List<Job> jobs = jobDao.findTop10ByUserIdOrderByIdDesc(userId); // 상위 10개 공고
 
         for (Job job : jobs) {
@@ -433,7 +455,7 @@ public class JobService {
                 jobTagContents.add(tag.getContents());
             }
 
-            Optional<APIPreviousJobs.Job> responseJob = Optional.of(new APIPreviousJobs.Job(
+            Optional<PreviousJob> responseJob = Optional.of(new PreviousJob(
                     job.getTitle(), job.getStartAt(), job.getEndAt(), job.getPayType(), job.getPay(), job.getContents(),
                     job.getCreatedAt(), job.getLat(), job.getLng(), job.getAddressDetail(), jobChecklistContents, jobTagContents, job.getPersonnel()));
 
@@ -443,7 +465,7 @@ public class JobService {
         JobPreviousPayload payload = new JobPreviousPayload(responseJobs);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new APIPreviousJobs(payload, meta), HttpStatus.OK);
+        response = new ResponseEntity<>(new PreviousJobResponse(payload, meta), HttpStatus.OK);
         return response;
     }
 
@@ -493,7 +515,7 @@ public class JobService {
         JobProceedingPayload jobProceedingPayload = new JobProceedingPayload(responseJobs, pagination);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new APIProceedingList(jobProceedingPayload, meta), HttpStatus.OK);
+        response = new ResponseEntity<>(new ProceedingListResponse(jobProceedingPayload, meta), HttpStatus.OK);
         return response;
     }
 
@@ -538,7 +560,7 @@ public class JobService {
         JobCompletedPayload payload = new JobCompletedPayload(responseJobs, pagination);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new APICompletedList(payload, meta), HttpStatus.OK);
+        response = new ResponseEntity<>(new CompletedListResponse(payload, meta), HttpStatus.OK);
         return response;
     }
 
@@ -595,7 +617,7 @@ public class JobService {
         User worker = userDao.findById(workerId).get();
         User giver = userDao.findById(job.getUserId()).get();
 
-        JobHiredInfo jobHiredInfo = JobHiredInfo.builder()
+        JobHiredInfoResponse jobHiredInfo = JobHiredInfoResponse.builder()
                 .payload(JobHiredInfoPayload.of(job, jobTagList, worker, giver))
                 .meta(new BasicMeta(true, ""))
                 .build();
