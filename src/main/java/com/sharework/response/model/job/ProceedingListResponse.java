@@ -15,8 +15,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APIProceedingList {
-    public APIProceedingList(JobProceedingPayload jobProceedingPayload, BasicMeta meta) {
+public class ProceedingListResponse {
+    public ProceedingListResponse(JobProceedingPayload jobProceedingPayload, BasicMeta meta) {
         this.payload = jobProceedingPayload;
         this.meta = meta;
     }
