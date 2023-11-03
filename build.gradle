@@ -100,6 +100,9 @@ dependencies {
 
 	// firebase cloud messaging
 	implementation 'com.google.firebase:firebase-admin:9.2.0'
+
+	// flyway
+	implementation "org.flywaydb:flyway-core"
 }
 
 test {
