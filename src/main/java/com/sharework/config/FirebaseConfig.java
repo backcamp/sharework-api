@@ -6,7 +6,6 @@ import com.google.firebase.FirebaseOptions;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,11 +19,9 @@ public class FirebaseConfig {
     @Value("${firebase.service-account.path}")
     private String path;
 
-    @Autowired
-    private ResourceLoader resourceLoader;
-
     @Bean
-    public void initializeFirebase() {
+    public FirebaseApp initializeFirebase(ResourceLoader resourceLoader) {
+        FirebaseApp firebaseApp;
         try {
             Resource resource = resourceLoader.getResource(path);
 
@@ -32,13 +29,16 @@ public class FirebaseConfig {
                 .setCredentials(GoogleCredentials.fromStream(resource.getInputStream()))
                 .build();
 
-            FirebaseApp firebaseApp = FirebaseApp.initializeApp(options);
+            firebaseApp = FirebaseApp.initializeApp(options);
 
             log.info("initializeFirebase done: " + firebaseApp.getName() + " With serviceAccount json: " + path);
         } catch (FileNotFoundException e) {
+            firebaseApp = null;
             log.error("initializeFirebase FileNotFoundException: " + e);
         } catch (IOException e) {
+            firebaseApp = null;
             log.error("initializeFirebase IOException: " + e);
         }
+        return firebaseApp;
     }
 }
