@@ -9,7 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 @Slf4j
 @Configuration
@@ -19,21 +20,25 @@ public class FirebaseConfig {
     private String path;
 
     @Bean
-    public void initializeFirebase() {
+    public FirebaseApp initializeFirebase(ResourceLoader resourceLoader) {
+        FirebaseApp firebaseApp;
         try {
-            ClassPathResource resource = new ClassPathResource(path);
+            Resource resource = resourceLoader.getResource(path);
 
             FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(resource.getInputStream()))
                 .build();
 
-            FirebaseApp firebaseApp = FirebaseApp.initializeApp(options);
+            firebaseApp = FirebaseApp.initializeApp(options);
 
             log.info("initializeFirebase done: " + firebaseApp.getName() + " With serviceAccount json: " + path);
         } catch (FileNotFoundException e) {
+            firebaseApp = null;
             log.error("initializeFirebase FileNotFoundException: " + e);
         } catch (IOException e) {
+            firebaseApp = null;
             log.error("initializeFirebase IOException: " + e);
         }
+        return firebaseApp;
     }
 }
