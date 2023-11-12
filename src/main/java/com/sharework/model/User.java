@@ -58,7 +58,6 @@ public class User {
     @ApiModelProperty(value = "profile_img", position = 7, example = "1234.jpg || 1234.png || 1234.gif")
     private String profileImg;
 
-    @Column(name = "jwt_token")
     @ApiModelProperty(value = "jwt", position = 8, example = "aaa.bbb.ccc")
     private String jwt;
 
