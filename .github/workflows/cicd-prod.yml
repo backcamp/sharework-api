@@ -1,9 +1,9 @@
-name: Release and Deploy to Development
+name: Release and Deploy to Production
 
 on:
   release:
     types:
-      - prereleased
+      - released
 
 jobs:
   build-and-push-image:
@@ -42,24 +42,25 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.ACTIONS_TOKEN }}
 
-      - name: Build development and Push to ghcr
+      - name: Build production and Push to ghcr
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: Dockerfile.dev
+          file: Dockerfile.prod
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ env.tag }}
             ghcr.io/${{ github.repository }}:latest
 
-      - name: Deploy to test server
+      - name: Deploy to production server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
+          host: ${{ secrets.HOST_PROD }}
+          username: ${{ secrets.USERNAME_PROD }}
+          key: ${{ secrets.KEY_PROD }}
+          # docker compose v2
           script: |
             docker image prune -f
             docker pull ghcr.io/${{ github.repository }}:latest
-            docker-compose up -d
+            docker compose up -d
             docker ps
