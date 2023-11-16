@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  api:
+    hostname: shwk.dev
+    image: ghcr.io/backcamp/sharework-api:latest
+    container_name: sharework-api
+    restart: always
+    ports:
+      - 8080:8080

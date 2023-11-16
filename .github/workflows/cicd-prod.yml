@@ -62,5 +62,5 @@ jobs:
           script: |
             docker image prune -f
             docker pull ghcr.io/${{ github.repository }}:latest
-            docker compose up -d
+            docker compose -f docker-compose.prod.yml up -d
             docker ps
