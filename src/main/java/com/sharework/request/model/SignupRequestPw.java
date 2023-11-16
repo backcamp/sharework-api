@@ -20,10 +20,9 @@ public class SignupRequestPw {
     @NotNull
     private String email;
 
-    @ApiModelProperty(value = "name", position = 2, example = "8~20글자 사이로 영어한글숫자가능", required = true)
+    @ApiModelProperty(value = "name", position = 2, example = "1~6글자 사이로 영어한글숫자가능", required = true)
     @NotNull
-    @Pattern(regexp = "^[가-힣a-zA-Z0-9]*$")
-    @Size(min = 8, max = 20, message = "닉네임을 8~20자 사이로 입력해주세요.")
+    @Pattern(regexp = "^[가-힣a-zA-Z0-9]{1,6}$")
     private String name;
 
     @ApiModelProperty(value = "phoneNumber", position = 3, example = "01012345678", required = true)

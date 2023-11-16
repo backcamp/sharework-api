@@ -34,19 +34,21 @@ public class SmsController { // FIXME - SmsAuthController로 변경하는 게 �
 			@ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class) })
 	@PostMapping(value = "send-sms", produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiOperation(httpMethod = "POST", value = "전화번호를 받아 3분짜리 jwt토큰 반환", notes = "insert user phone_number")
-	public ResponseEntity sendSms(@RequestBody @ApiParam(value = "Map 형식으로 핸드폰번호 전송", required = true, example = "{\r\n"
+	public ResponseEntity<SendSmsResponse> sendSms(@RequestBody @ApiParam(value = "Map 형식으로 핸드폰번호 전송", required = true, example = "{\r\n"
 			+ "\"receiver\" : \"핸드폰번호\"\r\n" + "}") Map<String, String> params) {
-		return smsService.sendSms(params);
+		SendSmsResponse response = smsService.sendSms(params);
+		return ResponseEntity.ok(response);
 	}
 
 	@ApiResponses({ @ApiResponse(code = 200, message = "SUCCESS", response = VerifiedResponse.class),
 			@ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class) })
 	@PostMapping(value = "verified", produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiOperation(httpMethod = "POST", value = "인증번호 검증 API", notes = "insert user verified_number and JWT token")
-	public ResponseEntity verifiedNumber(
+	public ResponseEntity<VerifiedResponse> verifiedNumber(
 			@RequestBody @ApiParam(value = "Map 형식으로 JWT 토큰 및 인증번호 요청", required = true, example = "{\r\n"
 					+ "\"token\" : \"JWT토큰\"," + "\r\n" + "\"verifiedNumber\" : \"인증번호\"\r\n"
 					+ "}") Map<String, String> params) {
-		return smsService.verifiedNumber(params);
+		VerifiedResponse response = smsService.verifiedNumber(params);
+		return ResponseEntity.ok(response);
 	}
 }

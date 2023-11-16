@@ -2,7 +2,6 @@ package com.sharework.response.model.job;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sharework.response.model.Pagination;
-import com.sharework.response.model.application.APIApplicationHistory;
 import com.sharework.response.model.meta.BasicMeta;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -10,48 +9,47 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APIHiredList {
-    public APIHiredList(Payload payload, Meta meta) {
+public class HiredListResponse {
+    public HiredListResponse(HiredListPayload payload, HiredListMeta meta) {
         this.payload = payload;
         this.meta = meta;
     }
 
     @ApiModelProperty(value = "payload", position = 1)
-    public Payload payload;
+    public HiredListPayload payload;
 
     @ApiModelProperty(value = "meta", position = 2)
-    public Meta meta;
+    public HiredListMeta meta;
 
-    public class Payload {
+    public static class HiredListPayload {
         @ApiModelProperty(value = "applications")
-        public List<Application> applications;
+        public List<HiredListApplication> applications;
         
         @ApiModelProperty(value = "pagination")
         public Pagination pagination;
 
-        public Payload(List<Application> applications, Pagination pagination) {
+        public HiredListPayload(List<HiredListApplication> applications, Pagination pagination) {
             this.applications = applications;
             this.pagination = pagination;
         }
     }
 
-    public static class Meta extends BasicMeta {
+    public static class HiredListMeta extends BasicMeta {
         @ApiModelProperty(value = "totalPerson")
         public Integer totalPerson;
 
-        public Meta(boolean status, String message, Integer totalPerson) {
+        public HiredListMeta(boolean status, String message, Integer totalPerson) {
             super(status, message);
             this.totalPerson = totalPerson;
         }
     }
 
-    public static class Application {
+    public static class HiredListApplication {
 
         @Id
         @Column(name = "id")
@@ -61,12 +59,12 @@ public class APIHiredList {
         public String status;
 
         @ApiModelProperty(value = "worker")
-        public Worker worker;
+        public HiredListWorker worker;
 
         @ApiModelProperty(value = "checklist")
-        public List<ApplicationChecklist> checkList;
+        public List<HiredListApplicationChecklist> checkList;
 
-        public Application(long id, String status, Worker worker, List<ApplicationChecklist> checkList) {
+        public HiredListApplication(long id, String status, HiredListWorker worker, List<HiredListApplicationChecklist> checkList) {
             this.id = id;
             this.status = status;
             this.worker = worker;
@@ -74,8 +72,8 @@ public class APIHiredList {
         }
     }
 
-    public static class Worker {
-        public User user;
+    public static class HiredListWorker {
+        public HiredListUser user;
 
         @Column(name = "experienceCount")
         public Integer experienceCount;
@@ -83,14 +81,14 @@ public class APIHiredList {
         @Column(name = "absenceCount")
         public Integer absenceCount;
 
-        public Worker(User user, Integer experienceCount, Integer absenceCount) {
+        public HiredListWorker(HiredListUser user, Integer experienceCount, Integer absenceCount) {
             this.user = user;
             this.experienceCount = experienceCount;
             this.absenceCount = absenceCount;
         }
     }
 
-    public static class User {
+    public static class HiredListUser {
         @Column(name = "id")
         public long id;
 
@@ -100,21 +98,21 @@ public class APIHiredList {
         @Column(name = "profileImg")
         public String profileImg;
 
-        public User(long id, String name, String profileImg) {
+        public HiredListUser(long id, String name, String profileImg) {
             this.id = id;
             this.name = name;
             this.profileImg = profileImg;
         }
     }
 
-    public static class ApplicationChecklist {
+    public static class HiredListApplicationChecklist {
         @Column(name = "contents")
         public String contents;
 
         @Column(name = "isChecked")
         public Boolean isChecked;
 
-        public ApplicationChecklist(String contents, Boolean isChecked) {
+        public HiredListApplicationChecklist(String contents, Boolean isChecked) {
             this.contents = contents;
             this.isChecked = isChecked;
         }

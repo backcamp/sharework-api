@@ -2,6 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.5.3'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
+	id 'jacoco'
 }
 
 group = 'com.sharework'
@@ -93,10 +94,24 @@ dependencies {
 
 	//sms인증문자API
 	implementation group: 'net.nurigo', name: 'javaSDK', version: '2.2'
+
+	// slack for errors
+	implementation group: 'com.github.maricn', name: 'logback-slack-appender', version: '1.6.1'
+
+	// firebase cloud messaging
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
+
+	// flyway
+	implementation "org.flywaydb:flyway-core"
 }
 
 test {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
 }
 
 sourceSets {

@@ -8,20 +8,20 @@ import com.sharework.model.*;
 import com.sharework.request.model.APIApplicationApplied;
 import com.sharework.response.model.Coordinate;
 import com.sharework.response.model.Pagination;
-import com.sharework.response.model.Response;
 import com.sharework.response.model.SuccessResponse;
-import com.sharework.response.model.application.APIApplicationHistory;
-import com.sharework.response.model.application.APIApplicationStatusOverview;
-import com.sharework.response.model.application.APIReceiptWorker;
+import com.sharework.response.model.application.ApplicationHistoryResponse;
+import com.sharework.response.model.application.ApplicationHistoryResponse.AhApplication;
+import com.sharework.response.model.application.ApplicationHistoryResponse.AhPayload;
+import com.sharework.response.model.application.ApplicationStatusOverviewResponse;
+import com.sharework.response.model.application.ApplicationStatusOverviewResponse.ApplicationStatusOverviewPayload;
+import com.sharework.response.model.application.ApplicationStatusOverviewResponse.StatusOverview;
 import com.sharework.response.model.job.JobOverview;
 import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -32,37 +32,25 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ApplicationService {
-    @Autowired
-    ApplicationDao applicationDao;
-    @Autowired
-    ApplicationChecklistDao applicationChecklistDao;
-    @Autowired
-    JobDao jobDao;
-    @Autowired
-    JobTagDao jobTagDao;
-    @Autowired
-    UserDao userDao;
-    @Autowired
-    TokenIdentification identification;
 
-    @Autowired
-    ApplicationTotalPaymentDao applicationTotalPaymentDao;
+    private final ApplicationDao applicationDao;
+    private final ApplicationChecklistDao applicationChecklistDao;
+    private final JobDao jobDao;
+    private final JobTagDao jobTagDao;
+    private final UserDao userDao;
+    private final ReviewDao reviewDao;
+    private final ApplicationTotalPaymentDao applicationTotalPaymentDao;
+    private final TokenIdentification identification;
     private int PAGE_SIZE = 100;
 
-    public ResponseEntity insertApplication(APIApplicationApplied application, String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public SuccessResponse insertApplication(APIApplicationApplied application, String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         // 이미 지원한 경우
         if (applicationDao.findByJobIdAndUserId(application.getJobId(), userId) != null) {
-            String errorMsg = "이미 지원한 공고입니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            // FIXME - 예외 핸들링하는 부분 controller advice 사용해, 가장 바깥에서 일괄 처리하도록 수정
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "이미 지원한 공고입니다."));
         }
 
         Optional<Job> job = jobDao.findById(application.getJobId());
@@ -76,16 +64,10 @@ public class ApplicationService {
             applicationChecklistDao.save(ApplicationChecklist.builder().applicationId(insertApplication.getId()).jobChecklistId(checklistId).build());
         }
 
-        // FIXME - Response entity를 만드는 책임은 service가 아닌 controller에서 있다. Response entity 만드는 부분 모두 controller로 옮기기.
-        response = new ResponseEntity<>(new Response(new BasicMeta(true, "")), HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, ""));
     }
 
-    public ResponseEntity getApplicationList(String status, int page, String accessToken) {
-
-        ResponseEntity response = null;
-        Response error = null;
-
+    public ApplicationHistoryResponse getApplicationList(String status, int page, String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         PageRequest pageRequest = PageRequest.of(page, PAGE_SIZE);
@@ -93,17 +75,11 @@ public class ApplicationService {
 
         LocalDateTime nowTime = LocalDateTime.now();
 
-        List<APIApplicationHistory.Application> responseApplications = new ArrayList<>();
+        List<AhApplication> responseApplications = new ArrayList<>();
 
         for (int i = 0; i < applications.getContent().size(); i++) {
             Application application = applications.getContent().get(i);
-
-            Optional<Job> job = jobDao.findById(application.getJobId());
-
-            if (status.equals(ApplicationTypeEnum.COMPLETED.name())) {
-                // isReview check 로직
-
-            }
+            Job job = jobDao.findById(application.getJobId()).orElseThrow();
 
             // 태그
             List<JobTag> tags = jobTagDao.findByJobId(application.getJobId());
@@ -113,47 +89,42 @@ public class ApplicationService {
             }
 
             // giver
-            Optional<User> user = userDao.findByIdAndDeleteYn(job.get().getUserId(), "N");
-            Giver giver = new Giver(user.get().getId(), user.get().getName(), user.get().getProfileImg());
+            User user = userDao.findByIdAndDeleteYn(job.getUserId(), "N").orElseThrow();
+            Giver giver = new Giver(user.getId(), user.getName(), user.getProfileImg());
 
             //Coordinate
-            Coordinate coordinate = new Coordinate(job.get().getLat(), job.get().getLng());
+            Coordinate coordinate = new Coordinate(job.getLat(), job.getLng());
 
             // jobOverview
 
             //totalPayment -> COMPLETED일때만 진행.
             int totalPayment = 0;
+
+            boolean isReviewed = false;
             if (status.equals(ApplicationTypeEnum.COMPLETED.name())) {
                 if (applicationTotalPaymentDao.getByApplicationId(application.getId()) != null)
                     totalPayment = applicationTotalPaymentDao.getByApplicationId(application.getId()).getTotalPayment();
+                // isReview 체크
+                isReviewed = reviewDao.existsByWorkerIdAndJobIdAndReviewType(application.getUserId(), job.getId(), "WORKER");
             }
-            JobOverview jobOverview = JobOverview.builder().id(job.get().getId()).title(job.get().getTitle()).coordinate(coordinate).giver(giver).startAt(job.get().getStartAt()).endAt(job.get().getEndAt()).pay(job.get().getPay()).payType(job.get().getPayType()).totalPay(totalPayment).tags(jobTags).build();
+            JobOverview jobOverview = JobOverview.builder().id(job.getId()).title(job.getTitle()).coordinate(coordinate).giver(giver).startAt(job.getStartAt()).endAt(job.getEndAt()).pay(job.getPay()).payType(job.getPayType()).totalPay(totalPayment).tags(jobTags).build();
 
             //30분 이내라면 true로 변경
             boolean isRequestPossible = false;
+            if (nowTime.plusMinutes(30).isAfter(job.getStartAt())) isRequestPossible = true;
 
-            if (nowTime.plusMinutes(30).isAfter(job.get().getStartAt())) isRequestPossible = true;
-
-            APIApplicationHistory.Application responseApplication = new APIApplicationHistory.Application(application.getId(), application.getStatus(), jobOverview, isRequestPossible);
-            responseApplications.add(responseApplication);
+            responseApplications.add(new AhApplication(application.getId(), application.getStatus(), jobOverview, isRequestPossible, isReviewed));
         }
 
         Pagination pagination = new Pagination(applications.isLast(), page + 1, applications.getTotalElements());
 
-        APIApplicationHistory.Payload payload = null;
-        payload = new APIApplicationHistory.Payload(responseApplications, pagination);
+        AhPayload payload = new AhPayload(responseApplications, pagination);
 
         BasicMeta meta = new BasicMeta(true, "");
-        APIApplicationHistory apiApplicationHistory = new APIApplicationHistory(payload, meta);
-        response = new ResponseEntity<>(apiApplicationHistory, HttpStatus.OK);
-        return response;
+        return new ApplicationHistoryResponse(payload, meta);
     }
 
-    public ResponseEntity updateHiredRequest(long id, String accessToken) {
-
-        ResponseEntity response = null;
-        Response error = null;
-
+    public SuccessResponse updateHiredRequest(long id, String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         Optional<Application> application = applicationDao.findById(id);
@@ -163,10 +134,7 @@ public class ApplicationService {
 
         //요청 시간이 30분 이내가 아니라면
         if (diffInMinutes > 30) {
-            String errorMsg = "일감 시작 요청 시간이 아닙니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "일감 시작 요청 시간이 아닙니다."));
         }
 
         List availableJobStatusList = new ArrayList() {
@@ -179,10 +147,7 @@ public class ApplicationService {
 
         if (availableJobStatusList.contains(job.get().getStatus())) {
             if (!application.get().getStatus().equals(ApplicationTypeEnum.HIRED.name())) {
-                String errorMsg = "업무시작요청을 할 수 없습니다.";
-                error = new Response(new BasicMeta(false, errorMsg));
-                response = new ResponseEntity<>(error, HttpStatus.OK);
-                return response;
+                return new SuccessResponse(new BasicMeta(false, "업무시작요청을 할 수 없습니다."));
             }
 
             LocalDateTime nowTime = LocalDateTime.now(); // 현재 시간을 가져옴
@@ -193,57 +158,34 @@ public class ApplicationService {
             application.get().setStatus(ApplicationTypeEnum.HIRED_REQUEST.name());
             applicationDao.save(application.get());
 
-            error = new Response(new BasicMeta(true, "성공적으로 업무 요청하였습니다."));
+            return new SuccessResponse(new BasicMeta(true, "성공적으로 업무 요청하였습니다."));
         } else {
-            String errorMsg = "업무가 종료된 공고입니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
+            return new SuccessResponse(new BasicMeta(false, "업무가 종료된 공고입니다."));
         }
-
-        response = new ResponseEntity<>(error, HttpStatus.OK);
-        return response;
     }
 
-    public ResponseEntity updateHiredApproved(long id, String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public SuccessResponse updateHiredApproved(long id, String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         Optional<Application> application = applicationDao.findById(id);
         Optional<Job> job = jobDao.findById(application.get().getJobId());
 
-        String jobStatusArr[] = {"OPEN", "STARTED", "CLOSED"};
+        String[] jobStatusArr = {"OPEN", "STARTED", "CLOSED"};
         List<String> jobStatusList = new ArrayList<>(Arrays.asList(jobStatusArr));
         if (jobStatusList.contains(job.get().getStatus())) {
             if (!application.get().getStatus().equals(ApplicationTypeEnum.HIRED_REQUEST.name())) {
-                String errorMsg = "업무 요청부터 해야합니다.";
-                error = new Response(new BasicMeta(false, errorMsg));
+                return new SuccessResponse(new BasicMeta(false, "업무 요청부터 해야합니다."));
             } else {
                 application.get().setStatus(ApplicationTypeEnum.HIRED_APPROVED.name());
                 applicationDao.save(application.get());
-
-                if (job.get().getStatus().equals(JobTypeEnum.CLOSED.name())) {
-                    job.get().setStatus(JobTypeEnum.STARTED.name());
-                    jobDao.save(job.get());
-                }
-
-                String message = "알바가 시작되었습니다.";
-                error = new Response(new BasicMeta(true, message));
+                return new SuccessResponse(new BasicMeta(true, "알바가 시작되었습니다."));
             }
         } else {
-            String errorMsg = "업무가 종료되었습니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
+            return new SuccessResponse(new BasicMeta(false, "업무가 종료되었습니다."));
         }
-
-        response = new ResponseEntity<>(error, HttpStatus.OK);
-        return response;
     }
 
-    public ResponseEntity updateHired(List<Long> applicationIds, String accessToken) {
-
-        ResponseEntity response = null;
-        Response responseObj = null;
-
+    public SuccessResponse updateHired(List<Long> applicationIds, String accessToken) {
         long jobId = -1;
         for (Long id : applicationIds) {
             Optional<Application> application = applicationDao.findById(id);
@@ -264,66 +206,47 @@ public class ApplicationService {
             jobDao.save(job.get());
         }
 
-        String message = "채택이 완료되었습니다.";
-        responseObj = new Response(new BasicMeta(true, message));
-        response = new ResponseEntity<>(responseObj, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "채택이 완료되었습니다."));
     }
 
-    public ResponseEntity getReceiptWorker(long id) {
-        ResponseEntity response = null;
-        Response error = null;
+//    public ResponseEntity getReceiptWorker(long id) {
+//        ResponseEntity response = null;
+//        Response error = null;
+//
+//        Application application = applicationDao.findById(id).orElseThrow();
+//        Job job = jobDao.findById(application.getJobId()).orElseThrow();
+//
+//        // job tag
+//        List<RwJobTag> responseJobTags = new ArrayList<>();
+//        List<JobTag> jobTagList = jobTagDao.findByJobId(job.getId());
+//        for (JobTag jobTag : jobTagList)
+//            responseJobTags.add(new RwJobTag(jobTag.getContents()));
+//
+//        // giver
+//        User giver = userDao.findById(job.getUserId()).orElseThrow();
+//        RwGiver responseUser = new RwGiver(giver.getId(), giver.getProfileImg());
+//
+//        //totalPayment
+//        int totalPayment = applicationTotalPaymentDao.getByApplicationId(id).getTotalPayment();
+//        RwJob responseJob = new RwJob(job.getId(), job.getTitle(), job.getStartAt(), job.getEndAt(), totalPayment, responseJobTags, responseUser);
+//
+//        // isReview 체크
+//        boolean isReview = reviewDao.existsByWorkerIdAndJobIdAndReviewType(application.getUserId(),job.getId(),"WORKER");
+//        RwApplication responseApplication = new RwApplication(application.getId(), isReview, responseJob);
+//
+//        RwPayload payload = new RwPayload(responseApplication);
+//        BasicMeta meta = new BasicMeta(true, "");
+//
+//        response = new ResponseEntity<>(new APIReceiptWorker(payload, meta), HttpStatus.OK);
+//        return response;
+//    }
 
-        Optional<Application> application = applicationDao.findById(id);
-        Optional<Job> job = jobDao.findById(application.get().getJobId());
-
-        if (job.isEmpty()) {
-            String errorMsg = "존재하지 않는 공고입니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
-        }
-
-        // job tag
-        List<APIReceiptWorker.JobTag> responseJobTags = new ArrayList<>();
-        List<JobTag> jobTags = jobTagDao.findByJobId(job.get().getId());
-        for (JobTag jobTag : jobTags) {
-            Optional<APIReceiptWorker.JobTag> responseJobTag = Optional.of(new APIReceiptWorker.JobTag(jobTag.getContents()));
-
-            responseJobTags.add(responseJobTag.get());
-        }
-
-        // user
-        Optional<User> user = userDao.findByIdAndDeleteYn(job.get().getUserId(), "N");
-        Optional<APIReceiptWorker.User> responseUser = Optional.of(new APIReceiptWorker.User(user.get().getId(), user.get().getProfileImg()));
-
-        //totalPayment
-        int totalPayment = applicationTotalPaymentDao.getByApplicationId(id).getTotalPayment();
-        Optional<APIReceiptWorker.Job> responseJob = Optional.of(new APIReceiptWorker.Job(job.get().getId(), job.get().getTitle(), job.get().getStartAt(), job.get().getEndAt(), totalPayment, responseJobTags, responseUser.get()));
-
-        // TODO: isReview 체크
-        Optional<APIReceiptWorker.Application> responseApplication = Optional.of(new APIReceiptWorker.Application(application.get().getId(), true, responseJob.get()));
-
-        APIReceiptWorker.Payload payload = new APIReceiptWorker().new Payload(responseApplication.get());
-        BasicMeta meta = new BasicMeta(true, "");
-
-        response = new ResponseEntity<>(new APIReceiptWorker(payload, meta), HttpStatus.OK);
-        return response;
-    }
-
-    public ResponseEntity updateAppliedCancel(long id) {
-
-        ResponseEntity response = null;
-        Response responseObj = null;
-
+    public SuccessResponse updateAppliedCancel(long id) {
         Optional<Application> application = applicationDao.findById(id);
         Optional<Job> job = jobDao.findById(application.get().getJobId());
 
         if (!application.get().getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
-            String errorMsg = "정보가 변경되었습니다.";
-            responseObj = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(responseObj, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "정보가 변경되었습니다."));
         }
 
         application.get().setStatus(ApplicationTypeEnum.CANCELED.name());
@@ -337,33 +260,33 @@ public class ApplicationService {
             }
         }
 
-        String message = "지원 취소가 완료되었습니다.";
-        responseObj = new Response(new BasicMeta(true, message));
-        response = new ResponseEntity<>(responseObj, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "지원 취소가 완료되었습니다."));
     }
 
-    public ResponseEntity updateRejected(List<Long> applicationIds) {
-        ResponseEntity response = null;
-        BasicMeta meta = null;
+    public SuccessResponse updateRejected(Long applicationIds) {
         List<Long> failedList = new ArrayList<>();
         long jobId = 0;
 
-        for (Long id : applicationIds) {
-            Optional<Application> application = applicationDao.findById(id);
-            jobId = application.orElseThrow().getJobId();
-            application.ifPresentOrElse(rejectedApplication -> {
-                        if (rejectedApplication.getStatus().equals(ApplicationTypeEnum.HIRED_APPROVED.name())) {
-                            failedList.add(id);
-                            return;
-                        }
-                        rejectedApplication.setStatus(ApplicationTypeEnum.REJECTED.name());
-                        applicationDao.save(rejectedApplication);
-                    },
-                    () -> {
-                        failedList.add(id);
-                    });
+        Optional<Application> application = applicationDao.findById(applicationIds);
+        jobId = application.orElseThrow().getJobId();
+
+        Optional<Job> job = jobDao.findById(application.get().getJobId());
+        if (LocalDateTime.now().plusHours(3).isAfter(job.get().getStartAt())) {
+            return new SuccessResponse(new BasicMeta(false, "채택 취소는 일감 시작 3시간 전까지만 가능합니다."));
         }
+
+        application.ifPresentOrElse(rejectedApplication -> {
+                    if (rejectedApplication.getStatus().equals(ApplicationTypeEnum.HIRED_APPROVED.name())) {
+                        failedList.add(applicationIds);
+                        return;
+                    }
+                    rejectedApplication.setStatus(ApplicationTypeEnum.REJECTED.name());
+                    applicationDao.save(rejectedApplication);
+                },
+                () -> {
+                    failedList.add(applicationIds);
+                });
+
         //job에 %hired%(채택된) 지원서가 job의 personnel보다 작으면 job status 를 OPEN으로 변경
         List<Application> applicationCheckList = applicationDao.findByJobIdAndStatusContaining(jobId, "HIRED");
 
@@ -376,16 +299,10 @@ public class ApplicationService {
 
         //failedList 보여줄지말지.
 
-        meta = new BasicMeta(true, "변경되었습니다.");
-        SuccessResponse result = new SuccessResponse(meta);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "변경되었습니다."));
     }
 
-    public ResponseEntity summaryApplication(String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public ApplicationStatusOverviewResponse summaryApplication(String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         int appliedCount = applicationDao.countByUserIdAndStatus(userId, ApplicationTypeEnum.APPLIED.name());
@@ -397,10 +314,9 @@ public class ApplicationService {
 
         int hiredCount = applicationDao.countByUserIdAndStatusIn(userId, hiredList);
 
-        APIApplicationStatusOverview.StatusOverview statusOverview = new APIApplicationStatusOverview.StatusOverview(appliedCount, hiredCount);
-        APIApplicationStatusOverview.Payload payload = new APIApplicationStatusOverview.Payload(statusOverview);
-        APIApplicationStatusOverview apiApplicationStatusOverview = new APIApplicationStatusOverview(payload, new BasicMeta(true, ""));
-        response = new ResponseEntity<>(apiApplicationStatusOverview, HttpStatus.OK);
-        return response;
+        StatusOverview statusOverview = new StatusOverview(appliedCount, hiredCount);
+        ApplicationStatusOverviewPayload payload = new ApplicationStatusOverviewPayload(statusOverview);
+        BasicMeta meta = new BasicMeta(true, "");
+        return new ApplicationStatusOverviewResponse(payload, meta);
     }
 }

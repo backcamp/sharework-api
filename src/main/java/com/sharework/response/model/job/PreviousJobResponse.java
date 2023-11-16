@@ -7,35 +7,34 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
-import javax.persistence.Id;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APIPreviousJobs {
-    public APIPreviousJobs(Payload payload, BasicMeta meta) {
+public class PreviousJobResponse {
+    public PreviousJobResponse(JobPreviousPayload payload, BasicMeta meta) {
         this.payload = payload;
         this.meta = meta;
     }
 
     @ApiModelProperty(value = "payload", position = 1)
-    public Payload payload;
+    public JobPreviousPayload payload;
 
     @ApiModelProperty(value = "meta", position = 2)
     public BasicMeta meta;
 
-    public static class Payload {
+    public static class JobPreviousPayload {
         @ApiModelProperty(value = "jobs")
-        public List<Job> jobs;
+        public List<PreviousJob> jobs;
 
-        public Payload(List<Job> jobs) {
+        public JobPreviousPayload(List<PreviousJob> jobs) {
             this.jobs = jobs;
         }
     }
 
-    public static class Job {
+    public static class PreviousJob {
 
         @Column(name = "title")
         public String title;
@@ -64,11 +63,14 @@ public class APIPreviousJobs {
 
         public String addressDetail;
 
-        @Column(name = "jobBenefits")
-        public List<JobBenefit> jobBenefits;
+        public List<String> checklist;
 
-        public Job(String title, LocalDateTime startAt, LocalDateTime endAt, String payType, Integer pay, String contents, LocalDateTime createdAt, double lat, double lng,
-                   String addressDetail, List<JobBenefit> jobBenefits) {
+        public List<String> tags;
+
+        public long personnel;
+
+        public PreviousJob(String title, LocalDateTime startAt, LocalDateTime endAt, String payType, Integer pay, String contents, LocalDateTime createdAt, double lat, double lng,
+                   String addressDetail, List<String> checklist, List<String> tags, long personnel) {
             this.title = title;
             this.startAt = startAt;
             this.endAt = endAt;
@@ -79,16 +81,9 @@ public class APIPreviousJobs {
             this.lat = lat;
             this.lng = lng;
             this.addressDetail = addressDetail;
-            this.jobBenefits = jobBenefits;
-        }
-    }
-
-    public static class JobBenefit {
-        @Column(name = "contents")
-        public String contents;
-
-        public JobBenefit(String contents) {
-            this.contents = contents;
+            this.checklist = checklist;
+            this.tags = tags;
+            this.personnel = personnel;
         }
     }
 }

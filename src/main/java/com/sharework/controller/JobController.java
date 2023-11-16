@@ -31,7 +31,7 @@ public class JobController {
     @Autowired
     JobStatusService jobStatusService;
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobsResponse.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @GetMapping(value = "/cluster/main", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "위도경도 MAX,MIN값을 받아 해당 지역 JOB정보 넘겨줌", notes = "insert screean lat,lng information ")
@@ -48,7 +48,7 @@ public class JobController {
         return jobService.insertJob(accessToken, job);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = Response.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobClusterDetailResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @GetMapping(value = "/cluster", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "클러스터에 해당하는 jobId와 page,pageSize 및 userLat,Lng를 받아 유저와의 거리순으로 job 상세정보 제공", notes = "insert jobId,pageNum,userLat,userLng")
@@ -56,7 +56,7 @@ public class JobController {
         return jobService.jobClusterDetail(jobDetail);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIJobDetail.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobDetailResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "info/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "jobId를 받아 job정보 제공.", notes = "공고 상세보기")
@@ -64,7 +64,7 @@ public class JobController {
         return jobService.jobDetail(id, accessToken);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIHiredList.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = HiredListResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "hired/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "채택한 회원 리스트")
@@ -73,7 +73,7 @@ public class JobController {
         return jobService.getHiredList(id, accessToken);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIAppliedList.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = AppliedListResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "applied/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "지원한 회원 리스트")
@@ -84,7 +84,7 @@ public class JobController {
         return jobService.getAppliedList(id, appliedList, accessToken);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIReceiptGiver.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = ReceiptGiverResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "receipt/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "기버 완료된 공고 영수증")
@@ -92,7 +92,7 @@ public class JobController {
         return jobService.getReceiptGiver(id);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIPreviousJobs.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = PreviousJobResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "previous", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "이전공고 리스트")
@@ -100,7 +100,7 @@ public class JobController {
         return jobService.getPreviousJobs(accessToken);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIProceedingList.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = ProceedingListResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "proceeding", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "기버 진행중 리스트")
@@ -109,7 +109,7 @@ public class JobController {
         return jobService.getProceedingList(accessToken, page);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APICompletedList.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = CompletedListResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "completed", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "기버 완료 리스트")
@@ -134,12 +134,12 @@ public class JobController {
         return jobService.getMinimumWage();
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobHiredInfo.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobHiredInfoResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
-    @GetMapping(value = "hired/info/{jobId}/approve/{userId}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = "hired/info/{jobId}/approve/{applicationId}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "일감 정보 확인")
-    public ResponseEntity getJobHIredInfo(@PathVariable long jobId, @PathVariable long userId){
-        return jobService.getJobHiredInfo(jobId, userId);
+    public ResponseEntity getJobHIredInfo(@PathVariable long jobId, @PathVariable long applicationId){
+        return jobService.getJobHiredInfo(jobId, applicationId);
     }
 
 }

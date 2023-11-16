@@ -3,11 +3,9 @@ package com.sharework.response.model.job;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sharework.model.JobTag;
 import com.sharework.response.model.Pagination;
-import com.sharework.response.model.job.APIProceedingList.Groupstatus;
 import com.sharework.response.model.meta.BasicMeta;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -17,32 +15,32 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APICompletedList {
-    public APICompletedList(JobCompletedPayload payload, BasicMeta meta) {
-        this.payload = payload;
+public class ProceedingListResponse {
+    public ProceedingListResponse(JobProceedingPayload jobProceedingPayload, BasicMeta meta) {
+        this.payload = jobProceedingPayload;
         this.meta = meta;
     }
 
     @ApiModelProperty(value = "payload", position = 1)
-    public JobCompletedPayload payload;
+    public JobProceedingPayload payload;
 
     @ApiModelProperty(value = "meta", position = 2)
     public BasicMeta meta;
 
-    public static class JobCompletedPayload {
+    public static class JobProceedingPayload {
         @ApiModelProperty(value = "jobOverviews")
-        public List<CompletedJob> jobOverviews;
+        public List<ProceedingJob> jobOverviews;
 
         @ApiModelProperty(value = "pagination")
         public Pagination pagination;
 
-        public JobCompletedPayload(List<CompletedJob> jobOverviews, Pagination pagination) {
+        public JobProceedingPayload(List<ProceedingJob> jobOverviews, Pagination pagination) {
             this.jobOverviews = jobOverviews;
             this.pagination = pagination;
         }
     }
 
-    public static class CompletedJob {
+    public static class ProceedingJob {
 
         @Id
         @Column(name = "id")
@@ -57,28 +55,33 @@ public class APICompletedList {
         @Column(name = "end_at")
         public LocalDateTime endAt;
 
-        public Integer applicationCount;
-
-        public Groupstatus groupstatus;
-
         public long totalPay;
+
+        public ProceedingGroupStatus groupStatus;
 
         @Column(name = "status")
         public String status;
 
         public List<JobTag> tags;
 
-        public CompletedJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, Integer applicationCount, Groupstatus groupstatus, String status,long totalPay,List<JobTag> tags) {
+        public ProceedingJob(long id, String title, LocalDateTime startAt, LocalDateTime endAt, ProceedingGroupStatus groupStatus, String status, long totalPay, List<JobTag> tags) {
             this.id = id;
             this.title = title;
             this.startAt = startAt;
-            this.applicationCount = applicationCount;
-            this.groupstatus = groupstatus;
             this.endAt = endAt;
-            this.totalPay = totalPay;
+            this.groupStatus = groupStatus;
             this.status = status;
+            this.totalPay = totalPay;
             this.tags = tags;
         }
+    }
+
+    @RequiredArgsConstructor
+    @Data
+    public static class ProceedingGroupStatus {
+
+        String name = "APPLIED";
+        int count = 0;
     }
 }
 

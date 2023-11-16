@@ -1,13 +1,10 @@
 package com.sharework.model;
 
 import javax.persistence.*;
-
-import com.sharework.common.DeleteYnEnum;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.*;
 import org.springframework.util.Assert;
 import com.sun.istack.NotNull;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
@@ -61,7 +58,6 @@ public class User {
     @ApiModelProperty(value = "profile_img", position = 7, example = "1234.jpg || 1234.png || 1234.gif")
     private String profileImg;
 
-    @Column(name = "jwt_token")
     @ApiModelProperty(value = "jwt", position = 8, example = "aaa.bbb.ccc")
     private String jwt;
 

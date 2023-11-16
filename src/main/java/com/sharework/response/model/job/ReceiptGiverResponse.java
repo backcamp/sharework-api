@@ -1,47 +1,45 @@
 package com.sharework.response.model.job;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.sharework.response.model.Pagination;
 import com.sharework.response.model.meta.BasicMeta;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
-import javax.persistence.Id;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APIReceiptGiver {
-    public APIReceiptGiver(Payload payload, BasicMeta meta) {
+public class ReceiptGiverResponse {
+    public ReceiptGiverResponse(RgPayload payload, BasicMeta meta) {
         this.payload = payload;
         this.meta = meta;
     }
 
     @ApiModelProperty(value = "payload", position = 1)
-    public Payload payload;
+    public RgPayload payload;
 
     @ApiModelProperty(value = "meta", position = 2)
     public BasicMeta meta;
 
-    public class Payload {
+    public static class RgPayload {
         @ApiModelProperty(value = "applicationOverviews")
-        public List<ApplicationOverview> applicationOverviews;
+        public List<RgApplicationOverview> applicationOverviews;
 
-        public Payload(List<ApplicationOverview> applicationOverviews) {
+        public RgPayload(List<RgApplicationOverview> applicationOverviews) {
             this.applicationOverviews = applicationOverviews;
         }
     }
 
-    public static class ApplicationOverview {
+    public static class RgApplicationOverview {
         @ApiModelProperty(value = "id")
         public long id;
 
         @ApiModelProperty(value = "worker")
-        public Worker worker;
+        public RgWorker worker;
 
         @ApiModelProperty(value = "startAt")
         public LocalDateTime startAt;
@@ -52,28 +50,28 @@ public class APIReceiptGiver {
         @Column(name = "totalPay")
         public Integer totalPay;
 
-        @ApiModelProperty(value = "status")
-        public String status;
+        @ApiModelProperty(value = "isReview")
+        public boolean isReviewed;
 
-        public ApplicationOverview(long id, Worker worker, LocalDateTime startAt, LocalDateTime endAt, int totalPay, String status) {
+        public RgApplicationOverview(long id, RgWorker worker, LocalDateTime startAt, LocalDateTime endAt, int totalPay, boolean isReviewed) {
             this.id = id;
             this.worker = worker;
             this.startAt = startAt;
             this.endAt = endAt;
             this.totalPay = totalPay;
-            this.status = status;
+            this.isReviewed=isReviewed;
         }
     }
 
-    public static class Worker {
+    public static class RgWorker {
         @ApiModelProperty(value = "user")
-        public User user;
+        public RgUser user;
         @ApiModelProperty(value = "experienceCount")
         public int experienceCount;
         @ApiModelProperty(value = "absenceCount")
         public int absenceCount;
 
-        public Worker(User user, int experienceCount, int absenceCount) {
+        public RgWorker(RgUser user, int experienceCount, int absenceCount) {
             this.user = user;
             this.experienceCount = experienceCount;
             this.absenceCount = absenceCount;
@@ -81,7 +79,7 @@ public class APIReceiptGiver {
     }
 
 
-    public static class User {
+    public static class RgUser {
         @ApiModelProperty(value = "id")
         public long id;
 
@@ -91,7 +89,7 @@ public class APIReceiptGiver {
         @ApiModelProperty(value = "profileImg")
         public String profileImg;
 
-        public User(long id, String name, String profileImg) {
+        public RgUser(long id, String name, String profileImg) {
             this.id = id;
             this.name = name;
             this.profileImg = profileImg;

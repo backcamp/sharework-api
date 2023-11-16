@@ -19,7 +19,7 @@ import java.util.Map;
 
 @CrossOrigin(origins = {"*"})
 @RestController
-@RequestMapping(path = "/api/v3/userCheckList")
+@RequestMapping(path = "/api/v3/userCheckList") // FIXME: /checklist
 public class ChecklistController {
 
     @Autowired
@@ -29,24 +29,27 @@ public class ChecklistController {
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @PatchMapping (produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "PATCH", value = "giver가 작성한 확인사항을 DB에 저장.", notes = "insert checklist")
-    public ResponseEntity insertUserChecklist(@RequestHeader("access-token") String accessToken,
+    public ResponseEntity<SuccessResponse> insertUserChecklist(@RequestHeader("access-token") String accessToken,
                                              @RequestBody CheckListName checkListName) {
-        return userChecklistService.insertUserChecklist(accessToken,checkListName);
+        SuccessResponse response = userChecklistService.insertUserChecklist(accessToken, checkListName);
+        return ResponseEntity.ok(response);
     }
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = UserChecklistResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
-    @GetMapping(value = "/get", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = "/get", produces = {MediaType.APPLICATION_JSON_VALUE}) // FIXME: remove value
     @ApiOperation(httpMethod = "GET", value = "giver가 전에 작성한 확인사항을 넘겨줌.", notes = "get checklist by userId")
-    public ResponseEntity getChecklist(@RequestHeader("access-token") String accessToken) {
-        return userChecklistService.getChecklist(accessToken);
+    public ResponseEntity<UserChecklistResponse> getChecklist(@RequestHeader("access-token") String accessToken) {
+        UserChecklistResponse response = userChecklistService.getChecklist(accessToken);
+        return ResponseEntity.ok(response);
     }
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = SuccessResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @DeleteMapping(value = "{checklistId}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "DELETE", value = "giver가 작성한 체크리스트를 삭제.", notes = "delete checklist by userId")
-    public ResponseEntity delChecklist(@PathVariable(required = true) long checklistId, @RequestHeader("access-token") String accessToken) {
-        return userChecklistService.delChecklist(accessToken, checklistId);
+    public ResponseEntity<SuccessResponse> delChecklist(@PathVariable(required = true) long checklistId, @RequestHeader("access-token") String accessToken) {
+        SuccessResponse response = userChecklistService.delChecklist(accessToken, checklistId);
+        return ResponseEntity.ok(response);
     }
 }

@@ -2,6 +2,7 @@ package com.sharework.controller;
 
 import com.sharework.request.model.RegisterReview;
 import com.sharework.response.model.SuccessResponse;
+import com.sharework.response.model.review.APIGetReview;
 import com.sharework.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -22,7 +23,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = GiveTagListResponse.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIGetReview.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "사용자가 받은 리뷰를 제공한다.", notes = "give reviewInfo")

@@ -12,33 +12,33 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APIJobClusterDetail {
+public class JobClusterDetailResponse {
 
-    public APIJobClusterDetail(Payload payload, BasicMeta meta) {
+    public JobClusterDetailResponse(JobClusterDetailPayload payload, BasicMeta meta) {
         this.payload = payload;
         this.meta = meta;
     }
 
     @ApiModelProperty(value = "payload", position = 1)
-    public Payload payload;
+    public JobClusterDetailPayload payload;
 
     @ApiModelProperty(value = "meta", position = 2)
     public BasicMeta meta;
 
-    public static class Payload {
+    public static class JobClusterDetailPayload {
         @ApiModelProperty(value = "jobOverviews")
         public List<JobOverview> jobOverviews;
 
         @ApiModelProperty(value = "pagination")
-        public Pagination pagination;
+        public JobClusterDetailPagination pagination;
 
-        public Payload(List<JobOverview> jobOverviews, Pagination pagination) {
+        public JobClusterDetailPayload(List<JobOverview> jobOverviews, JobClusterDetailPagination pagination) {
             this.jobOverviews = jobOverviews;
             this.pagination = pagination;
         }
     }
 
-    public static class Pagination {
+    public static class JobClusterDetailPagination {
         @ApiModelProperty(value = "last")
         public boolean last;
 
@@ -49,7 +49,7 @@ public class APIJobClusterDetail {
         public int nextPage;
 
         @Builder
-        public Pagination(boolean last, int totalPage, int page) {
+        public JobClusterDetailPagination(boolean last, int totalPage, int page) {
             this.last = last;
             this.totalPage = totalPage;
             this.nextPage = page;

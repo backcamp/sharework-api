@@ -34,7 +34,7 @@ public interface JobDao extends JpaRepository<Job, Long> {
     @Query(value = "select * from job where user_id = :user_id and status = :status", nativeQuery = true)
     Page<Job> getStatusJobList(@Param("user_id") long userId, @Param("status") String status, Pageable pageable);
 
-    @Query(value = "SELECT * FROM job WHERE start_at <= now() and status = 'OPEN'", nativeQuery = true)
+    @Query(value = "SELECT * FROM job WHERE start_at <= now() and status IN ('OPEN','CLOSED')", nativeQuery = true)
     List<Job> getStartTimeJobs();
 
     @Query(value = "SELECT * FROM job WHERE end_at <= now() and status='STARTED'", nativeQuery = true)

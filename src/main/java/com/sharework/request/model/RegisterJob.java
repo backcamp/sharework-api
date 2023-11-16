@@ -24,15 +24,11 @@ public class RegisterJob {
 	@ApiModelProperty(value = "addressDetail", position = 3, example = "우봉빌라201호")
 	private String addressDetail;
 
-	@ApiModelProperty(value = "dateAt", position = 4, example = "2021-02-20", required = true)
-	@NotNull
-	private String dateAt;
-
-	@ApiModelProperty(value = "startAt", position = 5, example = "09:00:00", required = true)
+	@ApiModelProperty(value = "startAt", position = 5, example = "2023-10-18-09:00:00", required = true)
 	@NotNull
 	private String startAt;
 
-	@ApiModelProperty(value = "endAt", position = 6, example = "18:00:00", required = true)
+	@ApiModelProperty(value = "endAt", position = 6, example = "2023-10-19-18:00:00", required = true)
 	@NotNull
 	private String endAt;
 

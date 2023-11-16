@@ -11,9 +11,6 @@ import lombok.Setter;
 @Builder
 public class GiverNameAndPhoneNumber {
     private String name;
-    private String userType;
     private String phoneNumber;
     private String userProfileImg;
-    private String address;
-    private String addressDetail;
 }
