@@ -4,10 +4,12 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
+import com.sharework.common.AlarmTypeEnum;
 import com.sharework.dao.UserAlarmDao;
 import com.sharework.dao.UserDao;
 import com.sharework.global.NotFoundException;
 import com.sharework.manager.TokenIdentification;
+import com.sharework.model.Job;
 import com.sharework.model.User;
 import com.sharework.model.UserAlarm;
 import com.sharework.request.model.AlarmRequest;
@@ -62,5 +64,53 @@ public class AlarmService {
         }
 
         return new SuccessResponse(new BasicMeta(true, "알림 전송 성공 입니다."));
+    }
+
+    public boolean sendAlarmType(AlarmTypeEnum alarmType, User worker, Job job) {
+        String title = "";
+        Optional<UserAlarm> userAlarm = Optional.empty();
+
+        switch (alarmType) {
+            case JOB_APPLICATION_RECEIVED:
+                title = String.format(alarmType.getTitle(), worker.getName());
+                userAlarm = userAlarmDao.findByUserId(job.getUserId());
+                break;
+            case SELECTED:
+                title = String.format(alarmType.getTitle(), job.getTitle());
+                userAlarm = userAlarmDao.findByUserId(worker.getId());
+                break;
+            case DESELECTED:
+            case JOB_START_REQUESTED:
+            case JOB_RECRUIT_CLOSED:
+            case JOB_FINISHED:
+            case JOB_DONE:
+                // TODO: to be implemented
+                break;
+        }
+
+        if (userAlarm.isEmpty()) {
+            log.error("sendAlarmType empty, don't send alarm: {} {} {}", alarmType.name(), worker.getId(), job.getId());
+            return false;
+        }
+
+        String targetFCMToken = userAlarm.get().getFcmToken();
+
+        Message message = Message.builder()
+            .setNotification(Notification.builder()
+                .setTitle(title)
+                .setBody(alarmType.getMessage())
+                .build())
+            .setToken(targetFCMToken)
+            .build();
+
+        try {
+            String response = FirebaseMessaging.getInstance().send(message);
+            log.info("sendAlarmType response: " + response);
+        } catch (FirebaseMessagingException e) {
+            log.error("sendAlarmType exception: " + e);
+            return false;
+        }
+
+        return true;
     }
 }
