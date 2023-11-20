@@ -1,11 +1,13 @@
 package com.sharework.service;
 
+import com.sharework.common.AlarmTypeEnum;
 import com.sharework.common.ApplicationTypeEnum;
 import com.sharework.common.JobTypeEnum;
 import com.sharework.dao.*;
 import com.sharework.manager.TokenIdentification;
 import com.sharework.model.*;
 import com.sharework.request.model.APIApplicationApplied;
+import com.sharework.request.model.AlarmRequest;
 import com.sharework.response.model.Coordinate;
 import com.sharework.response.model.Pagination;
 import com.sharework.response.model.SuccessResponse;
@@ -20,6 +22,7 @@ import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -43,6 +46,8 @@ public class ApplicationService {
     private final ReviewDao reviewDao;
     private final ApplicationTotalPaymentDao applicationTotalPaymentDao;
     private final TokenIdentification identification;
+    private final AlarmService alarmService;
+    private final UserAlarmDao userAlarmDao;
     private int PAGE_SIZE = 100;
 
     public SuccessResponse insertApplication(APIApplicationApplied application, String accessToken) {
@@ -63,6 +68,9 @@ public class ApplicationService {
         for (int checklistId : applicationChecklistIds) {
             applicationChecklistDao.save(ApplicationChecklist.builder().applicationId(insertApplication.getId()).jobChecklistId(checklistId).build());
         }
+
+        User worker = userDao.findById(userId).orElseThrow();
+        alarmService.sendAlarmType(AlarmTypeEnum.JOB_APPLICATION_RECEIVED, worker, job.get());
 
         return new SuccessResponse(new BasicMeta(true, ""));
     }
