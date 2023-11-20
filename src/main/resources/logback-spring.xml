@@ -24,7 +24,7 @@
 
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <springProfile name="dev">
+        <springProfile name="dev, prod">
             <appender-ref ref="ASYNC_SLACK"/>
         </springProfile>
     </root>
