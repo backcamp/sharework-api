@@ -22,6 +22,7 @@ import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -68,14 +69,8 @@ public class ApplicationService {
             applicationChecklistDao.save(ApplicationChecklist.builder().applicationId(insertApplication.getId()).jobChecklistId(checklistId).build());
         }
 
-        long giverId = job.get().getUserId();
-        Optional<UserAlarm> giverAlarm = userAlarmDao.findByUserId(giverId);
-        if (giverAlarm.isEmpty())
-            return new SuccessResponse(new BasicMeta(false, "구직신청 알람을 받을 업주가 없습니다."));
-
         User worker = userDao.findById(userId).orElseThrow();
-        if (!alarmService.sendAlarmType(AlarmTypeEnum.JOB_APPLICATION_RECEIVED, worker, job.get()))
-            return new SuccessResponse(new BasicMeta(false, "알람 전송 실패 입니다."));
+        alarmService.sendAlarmType(AlarmTypeEnum.JOB_APPLICATION_RECEIVED, worker, job.get());
 
         return new SuccessResponse(new BasicMeta(true, ""));
     }

@@ -69,12 +69,6 @@ class ApplicationServiceTest {
         );
         when(jobDao.findById(any())).thenReturn(Optional.of(mockJob));
 
-        UserAlarm mockUserAlarm = new UserAlarm(
-            "TEST_FCM_TOKEN_123456789",
-            1L
-        );
-        when(userAlarmDao.findByUserId(anyLong())).thenReturn(Optional.of(mockUserAlarm));
-
         User mockUser = new User(
             "sharework@sharework.com",
             "김쉐어",

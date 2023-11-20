@@ -68,16 +68,16 @@ public class AlarmService {
 
     public boolean sendAlarmType(AlarmTypeEnum alarmType, User worker, Job job) {
         String title = "";
-        Optional<UserAlarm> userAlarm = Optional.empty();
+        Optional<UserAlarm> targetUserAlarm = Optional.empty();
 
         switch (alarmType) {
             case JOB_APPLICATION_RECEIVED:
                 title = String.format(alarmType.getTitle(), worker.getName());
-                userAlarm = userAlarmDao.findByUserId(job.getUserId());
+                targetUserAlarm = userAlarmDao.findByUserId(job.getUserId());
                 break;
             case SELECTED:
                 title = String.format(alarmType.getTitle(), job.getTitle());
-                userAlarm = userAlarmDao.findByUserId(worker.getId());
+                targetUserAlarm = userAlarmDao.findByUserId(worker.getId());
                 break;
             case DESELECTED:
             case JOB_START_REQUESTED:
@@ -88,12 +88,12 @@ public class AlarmService {
                 break;
         }
 
-        if (userAlarm.isEmpty()) {
+        if (targetUserAlarm.isEmpty()) {
             log.error("sendAlarmType empty, don't send alarm: {} {} {}", alarmType.name(), worker.getId(), job.getId());
             return false;
         }
 
-        String targetFCMToken = userAlarm.get().getFcmToken();
+        String targetFCMToken = targetUserAlarm.get().getFcmToken();
 
         Message message = Message.builder()
             .setNotification(Notification.builder()
