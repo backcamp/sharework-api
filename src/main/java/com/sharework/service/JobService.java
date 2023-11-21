@@ -3,6 +3,7 @@ package com.sharework.service;
 import com.sharework.common.ApplicationTypeEnum;
 import com.sharework.common.JobTypeEnum;
 import com.sharework.dao.*;
+import com.sharework.global.NotFoundException;
 import com.sharework.manager.TokenIdentification;
 import com.sharework.model.*;
 import com.sharework.model.model.BaseBenefit;
@@ -46,8 +47,6 @@ import com.sharework.response.model.user.Giver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.sharework.response.model.job.CompletedListResponse.CompletedGroupStatus;
 import com.sharework.response.model.job.ReceiptGiverResponse.RgApplicationOverview;
@@ -79,19 +78,12 @@ public class JobService {
     private final ReviewDao reviewDao;
     private final int PAGE_SIZE = 5;
 
-    public ResponseEntity getJobList(JobLocation getJob) {
-
-        ResponseEntity response = null;
-        ErrorResponse error = null;
+    public JobResponse getJobList(JobLocation getJob) {
         List<Job> jobList = jobDao.selectJobs(getJob.getSouthwestLat(), getJob.getNortheastLat(),
                 getJob.getSouthwestLng(), getJob.getNortheastLng());
         BasicMeta meta;
         if (jobList.isEmpty()) {
-            String errorMsg = "등록된 일감이 없습니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            throw new NotFoundException("등록된 일감이 없습니다.");
         }
 
         List<MainJobsResponse> mainJobsResponse = new ArrayList<MainJobsResponse>();
@@ -102,16 +94,11 @@ public class JobService {
 
         JobsPayload jobPayload = new JobsPayload(mainJobsResponse);
         meta = new BasicMeta(true, "공고 목록을 성공적으로 전달하였습니다.");
-        final JobResponse result = new JobResponse(jobPayload, meta);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new JobResponse(jobPayload, meta);
     }
 
     @Transactional
-    public ResponseEntity insertJob(String accessToken, RegisterJob registerJob) {
-        ResponseEntity response = null;
-        ErrorResponse error = null;
-        BasicMeta meta;
+    public SuccessResponse insertJob(String accessToken, RegisterJob registerJob) {
         long id = identification.getHeadertoken(accessToken);
 
         // 시작 끝 날짜 localtime으로 변경 후 저장(끝나는 시간이 시작보다 작을 시 끝나는 시간은 다음날로 변경)
@@ -136,26 +123,16 @@ public class JobService {
         // tag 저장
         long jobId = job.getId();
         if (!tagService.insertJobTag(registerJob.getTagSubList(), jobId)) {
-            String errorMsg = "잘못된 태그입니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            return new SuccessResponse(new BasicMeta(false, "잘못된 태그입니다."));
         }
 
         // checkList 저장
         userChecklistService.insertJobCheckList(registerJob.getCheckList(), jobId);
 
-        meta = new BasicMeta(true, "공고가 성공적으로 저장되었습니다.");
-        SuccessResponse result = new SuccessResponse(meta);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "공고가 성공적으로 저장되었습니다."));
     }
 
-    public ResponseEntity jobClusterDetail(JobDetail jobDetail) {
-
-        ResponseEntity response = null;
-        ErrorResponse error = null;
+    public JobClusterDetailResponse jobClusterDetail(JobDetail jobDetail) {
         PageRequest pageRequest = PageRequest.of(jobDetail.getPage(), jobDetail.getPageSize());
         Page<Job> job = jobDao.findJobsDetail(jobDetail.getJobIds(), pageRequest);
 
@@ -183,35 +160,24 @@ public class JobService {
 
         JobClusterDetailPagination pagination = new JobClusterDetailPagination(job.isLast(), job.getTotalPages(), jobDetail.getPage());
         JobClusterDetailPayload payload = new JobClusterDetailPayload(jobOverviewList, pagination);
-        JobClusterDetailResponse apiJobClusterDetail = new JobClusterDetailResponse(payload, new BasicMeta(true, ""));
-        response = new ResponseEntity<>(apiJobClusterDetail, HttpStatus.OK);
-        return response;
+        return new JobClusterDetailResponse(payload, new BasicMeta(true, ""));
     }
 
-    public ResponseEntity jobDetail(long id, String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public JobDetailResponse jobDetail(long id, String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
         String userType = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow().getUserType();
 
         Optional<Job> job = jobDao.findById(id);
 
         if (job.isEmpty()) {
-            String errorMsg = "등록된 일감이 없습니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            throw new NotFoundException("등록된 일감이 없습니다.");
         }
 
         //회원이 지원한 공고라면 정보 제공.
         List<Application> applicationCheck = applicationDao.findByJobIdAndUserIdAndStatusContaining(job.get().getId(), userId, "HIRED");
 
         if (userType.equals("worker") && (applicationCheck.isEmpty() && !job.get().getStatus().equals(JobTypeEnum.OPEN.name()))) {
-            String errorMsg = "마감된 공고 입니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            throw new NotFoundException("마감된 공고 입니다.");
         }
 
         // giver user
@@ -265,16 +231,10 @@ public class JobService {
         boolean didApply = !Objects.isNull(application);
 
         JobDetailPayload payload = new JobDetailPayload(responseJob.get(), didApply);
-        JobDetailResponse apiJobDetail = new JobDetailResponse(payload, new BasicMeta(true, ""));
-
-        response = new ResponseEntity<>(apiJobDetail, HttpStatus.OK);
-        return response;
+        return new JobDetailResponse(payload, new BasicMeta(true, ""));
     }
 
-    public ResponseEntity getHiredList(long id, String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public HiredListResponse getHiredList(long id, String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         List<String> status = new ArrayList<>();
@@ -332,14 +292,10 @@ public class JobService {
         HiredListPayload payload = new HiredListPayload(responseApplications, pagination);
         HiredListMeta meta = new HiredListMeta(true, "", applications.size());
 
-        response = new ResponseEntity<>(new HiredListResponse(payload, meta), HttpStatus.OK);
-        return response;
+        return new HiredListResponse(payload, meta);
     }
 
-    public ResponseEntity getAppliedList(long id, AppliedList appliedList, String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public AppliedListResponse getAppliedList(long id, AppliedList appliedList, String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         PageRequest pageRequest = PageRequest.of(appliedList.getPage(), appliedList.getPageSize());
@@ -394,14 +350,10 @@ public class JobService {
         AppliedListPayload payload = new AppliedListPayload(responseApplications, pagination);
         AppliedListMeta meta = new AppliedListMeta(true, "");
 
-        response = new ResponseEntity<>(new AppliedListResponse(payload, meta), HttpStatus.OK);
-        return response;
+        return new AppliedListResponse(payload, meta);
     }
 
-    public ResponseEntity getReceiptGiver(long id) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public ReceiptGiverResponse getReceiptGiver(long id) {
         List<RgApplicationOverview> responseApplications = new ArrayList<>();
         List<Application> applications = applicationDao.findByJobIdAndStatus(id, ApplicationTypeEnum.COMPLETED.name()); // 해당 공고에 일이 완료된 지원서 가져오기
 
@@ -428,14 +380,10 @@ public class JobService {
         RgPayload payload = new RgPayload(responseApplications);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new ReceiptGiverResponse(payload, meta), HttpStatus.OK);
-        return response;
+        return new ReceiptGiverResponse(payload, meta);
     }
 
-    public ResponseEntity getPreviousJobs(String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public PreviousJobResponse getPreviousJobs(String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         List<PreviousJob> responseJobs = new ArrayList<>();
@@ -465,14 +413,10 @@ public class JobService {
         JobPreviousPayload payload = new JobPreviousPayload(responseJobs);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new PreviousJobResponse(payload, meta), HttpStatus.OK);
-        return response;
+        return new PreviousJobResponse(payload, meta);
     }
 
-    public ResponseEntity getProceedingList(String accessToken, Integer page) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public ProceedingListResponse getProceedingList(String accessToken, Integer page) {
         long userId = identification.getHeadertoken(accessToken);
 
         List<String> status = new ArrayList<>();
@@ -515,14 +459,10 @@ public class JobService {
         JobProceedingPayload jobProceedingPayload = new JobProceedingPayload(responseJobs, pagination);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new ProceedingListResponse(jobProceedingPayload, meta), HttpStatus.OK);
-        return response;
+        return new ProceedingListResponse(jobProceedingPayload, meta);
     }
 
-    public ResponseEntity getCompletedList(String accessToken, Integer page) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public CompletedListResponse getCompletedList(String accessToken, Integer page) {
         long userId = identification.getHeadertoken(accessToken);
 
         List<String> status = new ArrayList<>();
@@ -560,55 +500,35 @@ public class JobService {
         JobCompletedPayload payload = new JobCompletedPayload(responseJobs, pagination);
         BasicMeta meta = new BasicMeta(true, "");
 
-        response = new ResponseEntity<>(new CompletedListResponse(payload, meta), HttpStatus.OK);
-        return response;
+        return new CompletedListResponse(payload, meta);
     }
 
-    public ResponseEntity updateStatusClosed(long id) {
-        ResponseEntity response = null;
+    public SuccessResponse updateStatusClosed(long id) {
+        Optional<Job> job = jobDao.findById(id);
 
-        final BasicMeta finalmeta = new BasicMeta();
-        jobDao.findById(id).ifPresentOrElse(job -> {
+        if (job.isEmpty())
+            return new SuccessResponse(new BasicMeta(false, "공고가존재하지않습니다."));
 
-            // 공고 채택 마감 시 채택 인원이 0이면 failed로 변경
-            if (applicationDao.findByJobIdAndStatus(id, ApplicationTypeEnum.HIRED.name()).size() > 0)
-                job.setStatus(JobTypeEnum.CLOSED.name());
-            else
-                job.setStatus(JobTypeEnum.FAILED.name());
-            jobDao.save(job);
-            finalmeta.setStatus(true);
-            finalmeta.setMessage("성공적으로 변경하였습니다.");
-        }, () -> {
-            String errorMsg = "공고가존재하지않습니다.";
-            finalmeta.setStatus(false);
-            finalmeta.setMessage(errorMsg);
-        });
+        if (applicationDao.findByJobIdAndStatus(id, ApplicationTypeEnum.HIRED.name()).size() > 0)
+            job.get().setStatus(JobTypeEnum.CLOSED.name());
+        else
+            job.get().setStatus(JobTypeEnum.FAILED.name());
+        jobDao.save(job.get());
 
-        SuccessResponse result = new SuccessResponse(finalmeta);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "성공적으로 변경하였습니다."));
     }
 
-    public ResponseEntity getMinimumWage() {
-        ResponseEntity response = null;
-
+    public GetMinimumWageResponse getMinimumWage() {
         GetMinimumWagePayload payload = new GetMinimumWagePayload(9620);
-        final BasicMeta meta = new BasicMeta(true, "");
-        response = new ResponseEntity<>(new GetMinimumWageResponse(payload, meta), HttpStatus.OK);
-        return response;
+        final BasicMeta meta =  new BasicMeta(true, "");
+        return new GetMinimumWageResponse(payload, meta);
     }
 
-    public ResponseEntity getJobHiredInfo(long jobId, long applicationId) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public JobHiredInfoResponse getJobHiredInfo(long jobId, long applicationId) {
         Optional<Job> jobOptional = jobDao.findById(jobId);
 
         if (jobOptional.isEmpty()) {
-            String errorMsg = "존재하지 않는 공고입니다.";
-            error = new Response(new BasicMeta(false, errorMsg));
-            response = new ResponseEntity<>(error, HttpStatus.OK);
-            return response;
+            throw new NotFoundException("존재하지 않는 공고입니다.");
         }
 
         Job job = jobOptional.get();
@@ -617,12 +537,10 @@ public class JobService {
         User worker = userDao.findById(workerId).get();
         User giver = userDao.findById(job.getUserId()).get();
 
-        JobHiredInfoResponse jobHiredInfo = JobHiredInfoResponse.builder()
+        return JobHiredInfoResponse.builder()
                 .payload(JobHiredInfoPayload.of(job, jobTagList, worker, giver))
                 .meta(new BasicMeta(true, ""))
                 .build();
-        response = new ResponseEntity<>(jobHiredInfo, HttpStatus.OK);
-        return response;
 
     }
 }
