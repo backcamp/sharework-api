@@ -1,9 +1,11 @@
 name: Release and Deploy to Development
 
 on:
-  release:
-    types:
-      - prereleased
+  push:
+    branches:
+      - develop
+    tags:
+      - "**"
 
 jobs:
   build-and-push-image:

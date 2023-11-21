@@ -1,9 +1,11 @@
 name: Release and Deploy to Production
 
 on:
-  release:
-    types:
-      - released
+  push:
+    branches:
+      - prod
+    tags:
+      - "**"
 
 jobs:
   build-and-push-image:
