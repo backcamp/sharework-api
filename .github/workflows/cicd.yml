@@ -2,13 +2,12 @@ name: Release and Deploy to Development
 
 on:
   push:
-    branches:
-      - develop
     tags:
       - "**"
 
 jobs:
   build-and-push-image:
+    if: github.ref == 'develop'
     runs-on: ubuntu-22.04
 
     steps:
