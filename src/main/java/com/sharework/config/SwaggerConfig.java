@@ -23,6 +23,6 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         String description = "sharework-api " + profile + " 서버 입니다";
-        return new ApiInfoBuilder().title("ShareWork API").description(description).version("0.0.22").build();
+        return new ApiInfoBuilder().title("ShareWork API").description(description).version("0.0.25").build();
     }
 }
