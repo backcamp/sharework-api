@@ -44,7 +44,13 @@ jobs:
   deploy-develop:
     runs-on: ubuntu-22.04
     needs: build
-    if: github.ref == 'fix-cicd' && github.event_name == 'release' && github.event.release.prereleased == true
+    if: |
+      echo "github.ref: ${{ github.ref }}"
+      echo "github.event_name: ${{ github.event_name }}"
+      echo "github.event.release.prereleased: ${{ github.event.release.prereleased }}"
+      github.ref == 'fix-cicd' &&
+      github.event_name == 'release' &&
+      github.event.release.prereleased == true
     steps:
       - name: Build development and Push to ghcr
         uses: docker/build-push-action@v3
