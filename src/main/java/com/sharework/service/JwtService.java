@@ -46,7 +46,7 @@ public class JwtService {
 
         SignUpPayload signupPayload = new SignUpPayload(newAccessToken, newRefreshToken);
         meta = new BasicMeta(true, "토큰이 재발급되었습니다.");
-        return new SignUpResponse(meta, signupPayload);
+        return new SignUpResponse(signupPayload, meta);
     }
 
     public SignUpResponse updateUserType(String accessToken, String refreshToken, String type) {
@@ -92,7 +92,7 @@ public class JwtService {
             throw new NotFoundException(finalMeta.getMessage());
         }
 
-        return new SignUpResponse(finalMeta, signupPayload);
+        return new SignUpResponse(signupPayload, finalMeta);
     }
 
     private String reissuanceAccessToken(long userId, String userType) {

@@ -10,9 +10,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SignUpResponse {
-	public SignUpResponse(BasicMeta meta, SignUpPayload payload) {
-		this.meta = meta;
+	public SignUpResponse(SignUpPayload payload, BasicMeta meta) {
 		this.payload = payload;
+		this.meta = meta;
 	}
 
 	@ApiModelProperty(value = "payload", position = 2)
