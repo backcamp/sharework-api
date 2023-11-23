@@ -6,7 +6,6 @@ import com.sharework.response.model.SuccessResponse;
 import com.sharework.response.model.UserChecklistResponse;
 import com.sharework.service.ChecklistService;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
 
 @CrossOrigin(origins = {"*"})
 @RestController

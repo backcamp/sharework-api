@@ -27,7 +27,6 @@ public class ChecklistService {
 
     public SuccessResponse insertUserChecklist(String accessToken, CheckListName checklistName) {
         long id = identification.getHeadertoken(accessToken);
-        BasicMeta meta = new BasicMeta();
 
         String[] beforeCheckList = checklistName.getCheckListName();
 //        if (beforeCheckList.length == 0) {
@@ -77,7 +76,6 @@ public class ChecklistService {
     public SuccessResponse delChecklist(String accessToken, long checklistId) {
         long id = identification.getHeadertoken(accessToken);
         Optional<UserChecklist> getUserChecklistUserId = userChecklistDao.getByUserId(id);
-        BasicMeta meta;
         if (getUserChecklistUserId.isEmpty()) {
             return new SuccessResponse(new BasicMeta(false, "유저가 등록한 체크리스트가 없습니다."));
         }
