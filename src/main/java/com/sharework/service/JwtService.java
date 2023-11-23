@@ -1,16 +1,14 @@
 package com.sharework.service;
 
 import com.sharework.dao.UserDao;
+import com.sharework.global.NotFoundException;
 import com.sharework.manager.JwtManager;
 import com.sharework.manager.TokenIdentification;
-import com.sharework.response.model.ErrorResponse;
 import com.sharework.response.model.SignUpPayload;
 import com.sharework.response.model.SignUpResponse;
 import com.sharework.response.model.meta.BasicMeta;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Locale;
@@ -25,17 +23,11 @@ public class JwtService {
     @Autowired
     UserDao userDao;
 
-    public ResponseEntity updateJwtToken(String accessToken, String refreshToken) {
-        ResponseEntity response = null;
-        ErrorResponse error = null;
+    public SignUpResponse updateJwtToken(String accessToken, String refreshToken) {
         BasicMeta meta;
 
         if (accessToken == null || refreshToken == null) {
-            String errorMsg = "토큰 확인바랍니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity(error, HttpStatus.OK);
-            return response;
+            throw new NotFoundException("토큰 확인바랍니다.");
         }
 
         HashMap<String, String> map = identification.getTokenUserid(accessToken, refreshToken);
@@ -54,30 +46,16 @@ public class JwtService {
 
         SignUpPayload signupPayload = new SignUpPayload(newAccessToken, newRefreshToken);
         meta = new BasicMeta(true, "토큰이 재발급되었습니다.");
-        final SignUpResponse result = new SignUpResponse(meta, signupPayload);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new SignUpResponse(signupPayload, meta);
     }
 
-    public ResponseEntity updateUserType(String accessToken, String refreshToken, String type) {
-        ResponseEntity response = null;
-        ErrorResponse error = null;
-        BasicMeta meta = null;
-
+    public SignUpResponse updateUserType(String accessToken, String refreshToken, String type) {
         if (accessToken == null || refreshToken == null) {
-            String errorMsg = "토큰 확인바랍니다.";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity(error, HttpStatus.OK);
-            return response;
+            throw new NotFoundException("토큰 확인바랍니다.");
         }
 
         if (!type.toLowerCase(Locale.ROOT).equals("worker") && !type.toLowerCase(Locale.ROOT).equals("giver")) {
-            String errorMsg = "type wrong";
-            meta = new BasicMeta(false, errorMsg);
-            error = new ErrorResponse(meta);
-            response = new ResponseEntity(error, HttpStatus.OK);
-            return response;
+            throw new NotFoundException("type wrong");
         }
 
         HashMap<String, String> map = identification.getTokenUserid(accessToken, refreshToken);
@@ -111,14 +89,10 @@ public class JwtService {
         });
 
         if (signupPayload.getAccessToken().isEmpty()) {
-            error = new ErrorResponse(finalMeta);
-            response = new ResponseEntity(error, HttpStatus.OK);
-            return response;
+            throw new NotFoundException(finalMeta.getMessage());
         }
 
-        final SignUpResponse result = new SignUpResponse(finalMeta, signupPayload);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new SignUpResponse(signupPayload, finalMeta);
     }
 
     private String reissuanceAccessToken(long userId, String userType) {

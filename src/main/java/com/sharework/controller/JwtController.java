@@ -25,15 +25,17 @@ public class JwtController {
 			@ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class) })
 	@PostMapping(produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiOperation(httpMethod = "POST", value = "jwt만료 시 jwt 재발급", notes = "Reissuance of jwt when jwt expires")
-	public ResponseEntity updateJwtToken(@RequestHeader("access-token") String accessToken,@RequestHeader("refresh-token") String refreshToken) {
-		return jwtService.updateJwtToken(accessToken,refreshToken);
+	public ResponseEntity<SignUpResponse> updateJwtToken(@RequestHeader("access-token") String accessToken,@RequestHeader("refresh-token") String refreshToken) {
+		SignUpResponse response = jwtService.updateJwtToken(accessToken,refreshToken);
+		return ResponseEntity.ok(response);
 	}
 
 	@ApiResponses({ @ApiResponse(code = 200, message = "SUCCESS", response = SignUpResponse.class),
 			@ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class) })
 	@PutMapping(value = "/{type}",produces = { MediaType.APPLICATION_JSON_VALUE })
 	@ApiOperation(httpMethod = "PUT", value = "유저정보 변경 후 jwt토큰 재발급", notes = "Reissuance of jwt token after changing user information")
-	public ResponseEntity updateUserType(@RequestHeader("access-token") String accessToken,@RequestHeader("refresh-token") String refreshToken, @PathVariable String type) {
-		return jwtService.updateUserType(accessToken,refreshToken, type);
+	public ResponseEntity<SignUpResponse> updateUserType(@RequestHeader("access-token") String accessToken,@RequestHeader("refresh-token") String refreshToken, @PathVariable String type) {
+		SignUpResponse response = jwtService.updateUserType(accessToken,refreshToken, type);
+		return ResponseEntity.ok(response);
 	}
 }
