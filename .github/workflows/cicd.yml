@@ -9,6 +9,9 @@ jobs:
   build-deploy-develop:
     runs-on: ubuntu-22.04
     if: |
+      echo "github.ref: ${{ github.ref }}"
+      echo "github.event_name: ${{ github.event_name }}"
+      echo "github.event.release.prereleased: ${{ github.event.release.prereleased }}"
       github.ref == 'fix-cicd' &&
       github.event_name == 'release' &&
       github.event.release.prereleased == true
