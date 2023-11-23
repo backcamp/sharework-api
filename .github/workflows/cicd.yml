@@ -21,7 +21,11 @@ jobs:
 
       - name: Set output
         id: vars
-        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        run: |
+          echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "github.event.release.prereleased: ${{ github.event.release.prereleased }}"
 
       - name: Setup JDK 11
         uses: actions/setup-java@v3
