@@ -52,6 +52,7 @@ public class AlarmService {
                 .setTitle(request.getTitle())
                 .setBody(request.getBody())
                 .build())
+            .putData("scheme", request.getScheme())
             .setToken(request.getTargetFCMToken())
             .build();
 
