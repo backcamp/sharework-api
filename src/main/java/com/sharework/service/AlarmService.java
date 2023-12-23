@@ -77,10 +77,10 @@ public class AlarmService {
                 targetUserAlarm = userAlarmDao.findByUserId(job.getUserId());
                 break;
             case SELECTED:
+            case DESELECTED:
                 title = String.format(alarmType.getTitle(), job.getTitle());
                 targetUserAlarm = userAlarmDao.findByUserId(worker.getId());
                 break;
-            case DESELECTED:
             case JOB_START_REQUESTED:
             case JOB_RECRUIT_CLOSED:
             case JOB_FINISHED:

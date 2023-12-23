@@ -305,6 +305,9 @@ public class ApplicationService {
             }
         });
 
+        User worker = userDao.findById(applicationIds).orElseThrow();
+        alarmService.sendAlarmType(AlarmTypeEnum.DESELECTED, worker, job.get());
+
         //failedList 보여줄지말지.
 
         return new SuccessResponse(new BasicMeta(true, "변경되었습니다."));
