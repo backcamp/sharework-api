@@ -47,7 +47,7 @@ public class RegistrationController {
         return ResponseEntity.ok(response);
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = SignUpResponse.class),
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = VerifiedResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @PostMapping(value = "/login", produces = {MediaType.APPLICATION_JSON_VALUE}) // FIXME: "/signin"
     @ApiOperation(httpMethod = "POST", value = "핸드폰 번호와 비밀번호받아 로그인 진행", notes = "Login")
