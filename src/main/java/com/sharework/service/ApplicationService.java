@@ -307,7 +307,7 @@ public class ApplicationService {
             }
         });
 
-        long userId = application.get().getId();
+        long userId = application.get().getUserId();
         log.info("userId: " + userId);
         User worker = userDao.findById(userId).orElseThrow();
         alarmService.sendAlarmType(AlarmTypeEnum.DESELECTED, worker, job.get());
