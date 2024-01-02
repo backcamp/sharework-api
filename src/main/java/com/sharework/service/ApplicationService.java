@@ -36,6 +36,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ApplicationService {
 
     private final ApplicationDao applicationDao;
@@ -272,6 +273,7 @@ public class ApplicationService {
     }
 
     public SuccessResponse updateRejected(Long applicationId) {
+        log.info("applicationId: " + applicationId);
         List<Long> failedList = new ArrayList<>();
         long jobId = 0;
 
@@ -305,7 +307,9 @@ public class ApplicationService {
             }
         });
 
-        User worker = userDao.findById(application.get().getId()).orElseThrow();
+        long userId = application.get().getId();
+        log.info("userId: " + userId);
+        User worker = userDao.findById(userId).orElseThrow();
         alarmService.sendAlarmType(AlarmTypeEnum.DESELECTED, worker, job.get());
 
         //failedList 보여줄지말지.
