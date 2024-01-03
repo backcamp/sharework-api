@@ -271,11 +271,11 @@ public class ApplicationService {
         return new SuccessResponse(new BasicMeta(true, "지원 취소가 완료되었습니다."));
     }
 
-    public SuccessResponse updateRejected(Long applicationIds) {
+    public SuccessResponse updateRejected(Long applicationId) {
         List<Long> failedList = new ArrayList<>();
         long jobId = 0;
 
-        Optional<Application> application = applicationDao.findById(applicationIds);
+        Optional<Application> application = applicationDao.findById(applicationId);
         jobId = application.orElseThrow().getJobId();
 
         Optional<Job> job = jobDao.findById(application.get().getJobId());
@@ -285,14 +285,14 @@ public class ApplicationService {
 
         application.ifPresentOrElse(rejectedApplication -> {
                     if (rejectedApplication.getStatus().equals(ApplicationTypeEnum.HIRED_APPROVED.name())) {
-                        failedList.add(applicationIds);
+                        failedList.add(applicationId);
                         return;
                     }
                     rejectedApplication.setStatus(ApplicationTypeEnum.REJECTED.name());
                     applicationDao.save(rejectedApplication);
                 },
                 () -> {
-                    failedList.add(applicationIds);
+                    failedList.add(applicationId);
                 });
 
         //job에 %hired%(채택된) 지원서가 job의 personnel보다 작으면 job status 를 OPEN으로 변경
@@ -305,7 +305,8 @@ public class ApplicationService {
             }
         });
 
-        User worker = userDao.findById(applicationIds).orElseThrow();
+        long userId = application.get().getUserId();
+        User worker = userDao.findById(userId).orElseThrow();
         alarmService.sendAlarmType(AlarmTypeEnum.DESELECTED, worker, job.get());
 
         //failedList 보여줄지말지.
