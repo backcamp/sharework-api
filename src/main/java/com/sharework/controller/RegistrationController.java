@@ -14,6 +14,7 @@ import com.sharework.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +25,9 @@ import javax.validation.Valid;
 @CrossOrigin(origins = {"*"})
 @RestController
 @RequestMapping(path = "/api/v3/registration")
+@RequiredArgsConstructor
 public class RegistrationController {
-    @Autowired
-    UserService userService;
+    private final UserService userService;
 
 //	@ApiResponses({ @ApiResponse(code = 200, message = "SUCCESS", response = SignUpResponse.class),
 //			@ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class) })

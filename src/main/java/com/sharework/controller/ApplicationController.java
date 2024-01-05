@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,10 @@ import java.util.List;
 @CrossOrigin(origins = {"*"})
 @RestController
 @RequestMapping(path = "/api/v3/application")
+@RequiredArgsConstructor
 public class ApplicationController {
 
-    @Autowired
-    ApplicationService applicationService;
+    private final ApplicationService applicationService;
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = Response.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})

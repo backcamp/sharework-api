@@ -15,6 +15,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +24,10 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = {"*"})
 @RestController
 @RequestMapping(path = "/api/v3/job")
+@RequiredArgsConstructor
 public class JobController {
 
-    @Autowired
-    JobService jobService;
-
-    @Autowired
-    JobStatusService jobStatusService;
+    private final JobService jobService;
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})

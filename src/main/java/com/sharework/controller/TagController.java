@@ -4,6 +4,7 @@ import com.sharework.response.model.GiveTagListPayload;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.tag.giveTag;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,10 +23,10 @@ import io.swagger.annotations.ApiResponses;
 @CrossOrigin(origins = { "*" })
 @RestController
 @RequestMapping(path = "/api/v3")
+@RequiredArgsConstructor
 public class TagController {
 
-	@Autowired
-	TagService tagService;
+	private final TagService tagService;
 
 	@ApiResponses({ @ApiResponse(code = 200, message = "SUCCESS", response = GiveTagListResponse.class),
 			@ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class) })
