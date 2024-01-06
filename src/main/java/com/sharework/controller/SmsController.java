@@ -1,5 +1,6 @@
 package com.sharework.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +26,10 @@ import java.util.Map;
 @CrossOrigin(origins = { "*" })
 @RestController
 @RequestMapping(path = "/api/v3/sms-auth")
+@RequiredArgsConstructor
 public class SmsController { // FIXME - SmsAuthController로 변경하는 게 좋을듯.
 
-	@Autowired
-	SmsService smsService;
+	private final SmsService smsService;
 
 	@ApiResponses({ @ApiResponse(code = 200, message = "SUCCESS", response = SendSmsResponse.class),
 			@ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class) })

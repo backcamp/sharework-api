@@ -17,6 +17,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,9 +31,9 @@ import java.io.IOException;
 @CrossOrigin(origins = {"*"})
 @RestController
 @RequestMapping(path = "/api/v3/user")
+@RequiredArgsConstructor
 public class UserController {
-    @Autowired
-    UserService userService;
+    private final UserService userService;
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIGetUser.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
