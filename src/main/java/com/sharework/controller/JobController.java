@@ -29,6 +29,15 @@ public class JobController {
 
     private final JobService jobService;
 
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobSimpleResponse.class),
+            @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
+    @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(httpMethod = "GET", value = "jobId를 받아 간단한 job정보 제공.", notes = "공고 간략보기")
+    public ResponseEntity<JobSimpleResponse> getJobSimple(@PathVariable long id) {
+        JobSimpleResponse response = jobService.getJobSimple(id);
+        return ResponseEntity.ok(response);
+    }
+
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = JobResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @GetMapping(value = "/cluster/main", produces = {MediaType.APPLICATION_JSON_VALUE})

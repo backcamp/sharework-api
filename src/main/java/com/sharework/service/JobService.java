@@ -26,6 +26,8 @@ import com.sharework.response.model.job.HiredListResponse.HiredListApplication;
 import com.sharework.response.model.job.HiredListResponse.HiredListApplicationChecklist;
 import com.sharework.response.model.job.HiredListResponse.HiredListMeta;
 import com.sharework.response.model.job.HiredListResponse.HiredListPayload;
+import com.sharework.response.model.job.JobSimpleResponse.JobSimple;
+import com.sharework.response.model.job.JobSimpleResponse.JobSimplePayload;
 import com.sharework.response.model.job.PreviousJobResponse.PreviousJob;
 import com.sharework.response.model.job.PreviousJobResponse.JobPreviousPayload;
 import com.sharework.response.model.job.ProceedingListResponse.JobProceedingPayload;
@@ -77,6 +79,33 @@ public class JobService {
     private final ApplicationTotalPaymentDao applicationTotalPaymentDao;
     private final ReviewDao reviewDao;
     private final int PAGE_SIZE = 5;
+
+    public JobSimpleResponse getJobSimple(long id) {
+        Optional<Job> job = jobDao.findById(id);
+
+        if (job.isEmpty()) {
+            throw new NotFoundException("등록된 일감이 없습니다.");
+        }
+
+        // 태그
+        List<JobTag> tags = jobTagDao.findByJobId(id);
+        List<JobDetailJobTag> responseTags = new ArrayList<>();
+        for (JobTag tag : tags) {
+            responseTags.add(new JobDetailJobTag(tag.getId(), tag.getContents()));
+        }
+
+        int payment = 0;
+        List<ApplicationTotalPayment> applicationTotalPaymentList = applicationTotalPaymentDao.getByJobId(job.get().getId());
+
+        for (ApplicationTotalPayment app : applicationTotalPaymentList) {
+            payment += app.getTotalPayment();
+        }
+
+        Optional<JobSimple> responseJob = Optional.of(new JobSimple(job.get().getEndAt(), payment, job.get().getStartAt(), job.get().getStatus(), responseTags, job.get().getTitle()));
+
+        JobSimplePayload payload = new JobSimplePayload(responseJob.get());
+        return new JobSimpleResponse(payload, new BasicMeta(true, ""));
+    }
 
     public JobResponse getJobList(JobLocation getJob) {
         List<Job> jobList = jobDao.selectJobs(getJob.getSouthwestLat(), getJob.getNortheastLat(),
