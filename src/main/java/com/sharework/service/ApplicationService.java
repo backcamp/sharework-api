@@ -130,12 +130,11 @@ public class ApplicationService {
     }
 
     public SuccessResponse updateHiredRequest(long id, String accessToken) {
-        long userId = identification.getHeadertoken(accessToken);
 
-        Optional<Application> application = applicationDao.findById(id);
-        Optional<Job> job = jobDao.findById(application.get().getJobId());
+        Application application = applicationDao.findById(id).orElseThrow();
+        Job job = jobDao.findById(application.getJobId()).orElseThrow();
         LocalDateTime now = LocalDateTime.now();
-        long diffInMinutes = ChronoUnit.MINUTES.between(now, job.get().getStartAt());
+        long diffInMinutes = ChronoUnit.MINUTES.between(now, job.getStartAt());
 
         //요청 시간이 30분 이내가 아니라면
         if (diffInMinutes > 30) {
@@ -150,18 +149,22 @@ public class ApplicationService {
             }
         };
 
-        if (availableJobStatusList.contains(job.get().getStatus())) {
-            if (!application.get().getStatus().equals(ApplicationTypeEnum.HIRED.name())) {
+        if (availableJobStatusList.contains(job.getStatus())) {
+            if (!application.getStatus().equals(ApplicationTypeEnum.HIRED.name())) {
                 return new SuccessResponse(new BasicMeta(false, "업무시작요청을 할 수 없습니다."));
             }
 
             LocalDateTime nowTime = LocalDateTime.now(); // 현재 시간을 가져옴
 
-            if (application.get().getStartAt().isBefore(nowTime)) { // 요청시간이 시작시간보다 클 경우
-                application.get().setStartAt(nowTime.withSecond(0).withNano(0));// startAt을 현재 시간으로 변경
+            if (application.getStartAt().isBefore(nowTime)) { // 요청시간이 시작시간보다 클 경우
+                application.setStartAt(nowTime.withSecond(0).withNano(0));// startAt을 현재 시간으로 변경
             }
-            application.get().setStatus(ApplicationTypeEnum.HIRED_REQUEST.name());
-            applicationDao.save(application.get());
+            application.setStatus(ApplicationTypeEnum.HIRED_REQUEST.name());
+            applicationDao.save(application);
+
+            long userId = application.getUserId();
+            User worker = userDao.findById(userId).orElseThrow();
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_START_REQUESTED, worker, job);
 
             return new SuccessResponse(new BasicMeta(true, "성공적으로 업무 요청하였습니다."));
         } else {

@@ -73,6 +73,7 @@ public class AlarmService {
 
         switch (alarmType) {
             case JOB_APPLICATION_RECEIVED:
+            case JOB_START_REQUESTED:
                 title = String.format(alarmType.getTitle(), worker.getName());
                 targetUserAlarm = userAlarmDao.findByUserId(job.getUserId());
                 break;
@@ -81,7 +82,7 @@ public class AlarmService {
                 title = String.format(alarmType.getTitle(), job.getTitle());
                 targetUserAlarm = userAlarmDao.findByUserId(worker.getId());
                 break;
-            case JOB_START_REQUESTED:
+
             case JOB_RECRUIT_CLOSED:
             case JOB_FINISHED:
             case JOB_DONE:
