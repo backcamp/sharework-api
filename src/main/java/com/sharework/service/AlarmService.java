@@ -15,8 +15,10 @@ import com.sharework.model.UserAlarm;
 import com.sharework.request.model.AlarmRequest;
 import com.sharework.response.model.SuccessResponse;
 import com.sharework.response.model.meta.BasicMeta;
+
 import java.time.LocalDateTime;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,13 +50,13 @@ public class AlarmService {
 
     public SuccessResponse sendAlarm(AlarmRequest request) {
         Message message = Message.builder()
-            .setNotification(Notification.builder()
-                .setTitle(request.getTitle())
-                .setBody(request.getBody())
-                .build())
-            .putData("scheme", request.getScheme())
-            .setToken(request.getTargetFCMToken())
-            .build();
+                .setNotification(Notification.builder()
+                        .setTitle(request.getTitle())
+                        .setBody(request.getBody())
+                        .build())
+                .putData("scheme", request.getScheme())
+                .setToken(request.getTargetFCMToken())
+                .build();
 
         try {
             String response = FirebaseMessaging.getInstance().send(message);
@@ -73,6 +75,7 @@ public class AlarmService {
 
         switch (alarmType) {
             case JOB_APPLICATION_RECEIVED:
+            case JOB_START_REQUESTED:
                 title = String.format(alarmType.getTitle(), worker.getName());
                 targetUserAlarm = userAlarmDao.findByUserId(job.getUserId());
                 break;
@@ -81,7 +84,6 @@ public class AlarmService {
                 title = String.format(alarmType.getTitle(), job.getTitle());
                 targetUserAlarm = userAlarmDao.findByUserId(worker.getId());
                 break;
-            case JOB_START_REQUESTED:
             case JOB_RECRUIT_CLOSED:
             case JOB_FINISHED:
             case JOB_DONE:
@@ -97,12 +99,12 @@ public class AlarmService {
         String targetFCMToken = targetUserAlarm.get().getFcmToken();
 
         Message message = Message.builder()
-            .setNotification(Notification.builder()
-                .setTitle(title)
-                .setBody(alarmType.getMessage())
-                .build())
-            .setToken(targetFCMToken)
-            .build();
+                .setNotification(Notification.builder()
+                        .setTitle(title)
+                        .setBody(alarmType.getMessage())
+                        .build())
+                .setToken(targetFCMToken)
+                .build();
 
         try {
             String response = FirebaseMessaging.getInstance().send(message);

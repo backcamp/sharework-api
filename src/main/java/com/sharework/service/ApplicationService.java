@@ -163,6 +163,9 @@ public class ApplicationService {
             if (application.get().getStartAt().isBefore(nowTime)) { // 요청시간이 시작시간보다 클 경우
                 application.get().setStartAt(nowTime.withSecond(0).withNano(0));// startAt을 현재 시간으로 변경
             }
+
+            User worker = userDao.findById(userId).orElseThrow();
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_START_REQUESTED, worker, job.get());
             application.get().setStatus(ApplicationTypeEnum.HIRED_REQUEST.name());
             applicationDao.save(application.get());
 
