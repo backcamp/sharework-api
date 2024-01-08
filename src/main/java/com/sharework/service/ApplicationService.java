@@ -7,7 +7,6 @@ import com.sharework.dao.*;
 import com.sharework.manager.TokenIdentification;
 import com.sharework.model.*;
 import com.sharework.request.model.APIApplicationApplied;
-import com.sharework.request.model.AlarmRequest;
 import com.sharework.response.model.Coordinate;
 import com.sharework.response.model.Pagination;
 import com.sharework.response.model.SuccessResponse;
@@ -22,11 +21,9 @@ import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -133,12 +130,11 @@ public class ApplicationService {
     }
 
     public SuccessResponse updateHiredRequest(long id, String accessToken) {
-        long userId = identification.getHeadertoken(accessToken);
 
-        Optional<Application> application = applicationDao.findById(id);
-        Optional<Job> job = jobDao.findById(application.get().getJobId());
+        Application application = applicationDao.findById(id).orElseThrow();
+        Job job = jobDao.findById(application.getJobId()).orElseThrow();
         LocalDateTime now = LocalDateTime.now();
-        long diffInMinutes = ChronoUnit.MINUTES.between(now, job.get().getStartAt());
+        long diffInMinutes = ChronoUnit.MINUTES.between(now, job.getStartAt());
 
         //요청 시간이 30분 이내가 아니라면
         if (diffInMinutes > 30) {
@@ -153,18 +149,22 @@ public class ApplicationService {
             }
         };
 
-        if (availableJobStatusList.contains(job.get().getStatus())) {
-            if (!application.get().getStatus().equals(ApplicationTypeEnum.HIRED.name())) {
+        if (availableJobStatusList.contains(job.getStatus())) {
+            if (!application.getStatus().equals(ApplicationTypeEnum.HIRED.name())) {
                 return new SuccessResponse(new BasicMeta(false, "업무시작요청을 할 수 없습니다."));
             }
 
             LocalDateTime nowTime = LocalDateTime.now(); // 현재 시간을 가져옴
 
-            if (application.get().getStartAt().isBefore(nowTime)) { // 요청시간이 시작시간보다 클 경우
-                application.get().setStartAt(nowTime.withSecond(0).withNano(0));// startAt을 현재 시간으로 변경
+            if (application.getStartAt().isBefore(nowTime)) { // 요청시간이 시작시간보다 클 경우
+                application.setStartAt(nowTime.withSecond(0).withNano(0));// startAt을 현재 시간으로 변경
             }
-            application.get().setStatus(ApplicationTypeEnum.HIRED_REQUEST.name());
-            applicationDao.save(application.get());
+            application.setStatus(ApplicationTypeEnum.HIRED_REQUEST.name());
+            applicationDao.save(application);
+
+            long userId = application.getUserId();
+            User worker = userDao.findById(userId).orElseThrow();
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_START_REQUESTED, worker, job);
 
             return new SuccessResponse(new BasicMeta(true, "성공적으로 업무 요청하였습니다."));
         } else {
@@ -195,23 +195,32 @@ public class ApplicationService {
 
     public SuccessResponse updateHired(List<Long> applicationIds, String accessToken) {
         long jobId = -1;
-        for (Long id : applicationIds) {
-            Optional<Application> application = applicationDao.findById(id);
 
-            if (application.get().getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
-                application.get().setStatus(ApplicationTypeEnum.HIRED.name());
-                applicationDao.save(application.get());
+        for (Long id : applicationIds) {
+            Application application = applicationDao.findById(id).orElseThrow();
+
+            if (application.getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
+                application.setStatus(ApplicationTypeEnum.HIRED.name());
+                applicationDao.save(application);
+
+                long userId = application.getUserId();
+                User worker = userDao.findById(userId).orElseThrow();
+                Job job = jobDao.findById(application.getJobId()).orElseThrow();
+                alarmService.sendAlarmType(AlarmTypeEnum.SELECTED, worker, job);
             }
 
-            jobId = application.get().getJobId();
+            jobId = application.getJobId();
         }
 
-        Optional<Job> job = jobDao.findById(jobId);
-        int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.get().getId(), "HIRED");
+        if(jobId == -1)
+            return new SuccessResponse(new BasicMeta(false, "일감이 존재하지 않습니다."));
+
+        Job job = jobDao.findById(jobId).orElseThrow();
+        int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.getId(), "HIRED");
         // 모집인원이 다 차면 공고 상태 close
-        if (job.get().getPersonnel() <= hiredCount && job.get().getStatus().equals(JobTypeEnum.OPEN.name())) {
-            job.get().setStatus(JobTypeEnum.CLOSED.name());
-            jobDao.save(job.get());
+        if (job.getPersonnel() <= hiredCount && job.getStatus().equals(JobTypeEnum.OPEN.name())) {
+            job.setStatus(JobTypeEnum.CLOSED.name());
+            jobDao.save(job);
         }
 
         return new SuccessResponse(new BasicMeta(true, "채택이 완료되었습니다."));
