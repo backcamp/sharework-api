@@ -198,23 +198,34 @@ public class ApplicationService {
 
     public SuccessResponse updateHired(List<Long> applicationIds, String accessToken) {
         long jobId = -1;
-        for (Long id : applicationIds) {
-            Optional<Application> application = applicationDao.findById(id);
 
-            if (application.get().getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
-                application.get().setStatus(ApplicationTypeEnum.HIRED.name());
-                applicationDao.save(application.get());
+
+        for (Long id : applicationIds) {
+            Application application = applicationDao.findById(id).orElseThrow();
+
+            if (application.getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
+
+                long userId = application.getUserId();
+                User worker = userDao.findById(userId).orElseThrow();
+                Job job = jobDao.findById(application.getJobId()).orElseThrow();
+                alarmService.sendAlarmType(AlarmTypeEnum.SELECTED, worker, job);
+
+                application.setStatus(ApplicationTypeEnum.HIRED.name());
+                applicationDao.save(application);
             }
 
-            jobId = application.get().getJobId();
+            jobId = application.getJobId();
         }
 
-        Optional<Job> job = jobDao.findById(jobId);
-        int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.get().getId(), "HIRED");
+        if(jobId == -1)
+            return new SuccessResponse(new BasicMeta(false, "일감이 존재하지않습니다."));
+
+        Job job = jobDao.findById(jobId).orElseThrow();
+        int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.getId(), "HIRED");
         // 모집인원이 다 차면 공고 상태 close
-        if (job.get().getPersonnel() <= hiredCount && job.get().getStatus().equals(JobTypeEnum.OPEN.name())) {
-            job.get().setStatus(JobTypeEnum.CLOSED.name());
-            jobDao.save(job.get());
+        if (job.getPersonnel() <= hiredCount && job.getStatus().equals(JobTypeEnum.OPEN.name())) {
+            job.setStatus(JobTypeEnum.CLOSED.name());
+            jobDao.save(job);
         }
 
         return new SuccessResponse(new BasicMeta(true, "채택이 완료되었습니다."));

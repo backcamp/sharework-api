@@ -538,7 +538,7 @@ public class JobService {
         if (job.isEmpty())
             return new SuccessResponse(new BasicMeta(false, "공고가존재하지않습니다."));
 
-        if (applicationDao.findByJobIdAndStatus(id, ApplicationTypeEnum.HIRED.name()).size() > 0)
+        if (!applicationDao.findByJobIdAndStatus(id, ApplicationTypeEnum.HIRED.name()).isEmpty())
             job.get().setStatus(JobTypeEnum.CLOSED.name());
         else
             job.get().setStatus(JobTypeEnum.FAILED.name());
