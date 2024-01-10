@@ -101,7 +101,47 @@ public class JobService {
             payment += app.getTotalPayment();
         }
 
-        Optional<JobSimple> responseJob = Optional.of(new JobSimple(job.get().getEndAt(), payment, job.get().getStartAt(), job.get().getStatus(), responseTags, job.get().getTitle()));
+        List<String> proceedings = Arrays.asList(
+                JobTypeEnum.OPEN.name(),
+                JobTypeEnum.CLOSED.name(),
+                JobTypeEnum.STARTED.name()
+        );
+        com.sharework.response.model.application.GroupStatus status = new com.sharework.response.model.application.GroupStatus();
+        if (Objects.equals(job.get().getStatus(), JobTypeEnum.COMPLETED.name())) {
+            GroupStatus groupStatus = applicationDao.completedGroupStatus(job.get().getId());
+
+            if (groupStatus != null) {
+                status.setName(groupStatus.getName());
+                status.setCount(groupStatus.getCount());
+            } else {
+                status.setName(ApplicationTypeEnum.COMPLETED.name());
+                status.setCount(0);
+            }
+        } else if (proceedings.contains(job.get().getStatus())) {
+            GroupStatus groupStatus = applicationDao.processingGroupStatus(job.get().getId());
+
+            if (groupStatus != null) {
+                status.setName(groupStatus.getName());
+                status.setCount(groupStatus.getCount());
+            } else {
+                status.setName(ApplicationTypeEnum.APPLIED.name());
+                status.setCount(0);
+            }
+        } else {
+            status.setName("");
+            status.setCount(0);
+        }
+
+        Optional<JobSimple> responseJob = Optional.of(new JobSimple(
+                job.get().getEndAt(),
+                job.get().getId(),
+                status,
+                payment,
+                job.get().getStartAt(),
+                job.get().getStatus(),
+                responseTags,
+                job.get().getTitle())
+        );
 
         JobSimplePayload payload = new JobSimplePayload(responseJob.get());
         return new JobSimpleResponse(payload, new BasicMeta(true, ""));
