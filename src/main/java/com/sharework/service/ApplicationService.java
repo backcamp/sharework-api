@@ -131,10 +131,10 @@ public class ApplicationService {
 
     public SuccessResponse updateHiredRequest(long id, String accessToken) {
 
-        Application application = applicationDao.findById(id).orElseThrow();
-        Job job = jobDao.findById(application.getJobId()).orElseThrow();
+        Optional<Application> application = applicationDao.findById(id);
+        Optional<Job> job = jobDao.findById(application.get().getJobId());
         LocalDateTime now = LocalDateTime.now();
-        long diffInMinutes = ChronoUnit.MINUTES.between(now, job.getStartAt());
+        long diffInMinutes = ChronoUnit.MINUTES.between(now, job.get().getStartAt());
 
         //요청 시간이 30분 이내가 아니라면
         if (diffInMinutes > 30) {
@@ -149,22 +149,22 @@ public class ApplicationService {
             }
         };
 
-        if (availableJobStatusList.contains(job.getStatus())) {
-            if (!application.getStatus().equals(ApplicationTypeEnum.HIRED.name())) {
+        if (availableJobStatusList.contains(job.get().getStatus())) {
+            if (!application.get().getStatus().equals(ApplicationTypeEnum.HIRED.name())) {
                 return new SuccessResponse(new BasicMeta(false, "업무시작요청을 할 수 없습니다."));
             }
 
             LocalDateTime nowTime = LocalDateTime.now(); // 현재 시간을 가져옴
 
-            if (application.getStartAt().isBefore(nowTime)) { // 요청시간이 시작시간보다 클 경우
-                application.setStartAt(nowTime.withSecond(0).withNano(0));// startAt을 현재 시간으로 변경
+            if (application.get().getStartAt().isBefore(nowTime)) { // 요청시간이 시작시간보다 클 경우
+                application.get().setStartAt(nowTime.withSecond(0).withNano(0));// startAt을 현재 시간으로 변경
             }
-            application.setStatus(ApplicationTypeEnum.HIRED_REQUEST.name());
-            applicationDao.save(application);
+            application.get().setStatus(ApplicationTypeEnum.HIRED_REQUEST.name());
+            applicationDao.save(application.get());
 
-            long userId = application.getUserId();
+            long userId = application.get().getUserId();
             User worker = userDao.findById(userId).orElseThrow();
-            alarmService.sendAlarmType(AlarmTypeEnum.JOB_START_REQUESTED, worker, job);
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_START_REQUESTED, worker, job.get());
 
             return new SuccessResponse(new BasicMeta(true, "성공적으로 업무 요청하였습니다."));
         } else {
@@ -197,19 +197,19 @@ public class ApplicationService {
         long jobId = -1;
 
         for (Long id : applicationIds) {
-            Application application = applicationDao.findById(id).orElseThrow();
+            Optional<Application> application = applicationDao.findById(id);
 
-            if (application.getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
-                application.setStatus(ApplicationTypeEnum.HIRED.name());
-                applicationDao.save(application);
+            if (application.get().getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
+                application.get().setStatus(ApplicationTypeEnum.HIRED.name());
+                applicationDao.save(application.get());
 
-                long userId = application.getUserId();
+                long userId = application.get().getUserId();
                 User worker = userDao.findById(userId).orElseThrow();
-                Job job = jobDao.findById(application.getJobId()).orElseThrow();
-                alarmService.sendAlarmType(AlarmTypeEnum.SELECTED, worker, job);
+                Optional<Job> job = jobDao.findById(application.get().getJobId());
+                alarmService.sendAlarmType(AlarmTypeEnum.SELECTED, worker, job.get());
             }
 
-            jobId = application.getJobId();
+            jobId = application.get().getJobId();
         }
 
         if(jobId == -1)
