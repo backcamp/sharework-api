@@ -1,16 +1,21 @@
 package com.sharework.scheduler;
 
+import com.sharework.common.AlarmTypeEnum;
 import com.sharework.common.ApplicationTypeEnum;
 import com.sharework.common.JobTypeEnum;
 import com.sharework.dao.ApplicationDao;
 import com.sharework.dao.ApplicationTotalPaymentDao;
 import com.sharework.dao.JobDao;
+import com.sharework.dao.UserDao;
 import com.sharework.model.Application;
 import com.sharework.model.ApplicationTotalPayment;
 import com.sharework.model.Job;
+import com.sharework.model.User;
+import com.sharework.service.AlarmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
 import javax.transaction.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -25,6 +30,10 @@ public class Schedule {
     private final ApplicationDao applicationDao;
 
     private final ApplicationTotalPaymentDao applicationTotalPaymentDao;
+
+    private final UserDao userDao;
+
+    private final AlarmService alarmService;
 
     @Transactional
     @Scheduled(cron = "0 0/1 * * * ?", zone = "Asia/Seoul")
@@ -55,6 +64,7 @@ public class Schedule {
         List<Job> jobStartedList = jobDao.getEndTimeoutStartedJobs();
         jobStartedList.forEach(item -> {
             item.setStatus(JobTypeEnum.COMPLETED.name());
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_FINISHED, null, item);
         });
 
         //status가 open,closed이며, 현재시간이 마감시간을 넘겼다면 falied
