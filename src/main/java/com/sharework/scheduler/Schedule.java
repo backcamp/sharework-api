@@ -86,6 +86,9 @@ public class Schedule {
         applicationHiredApprovedList.forEach(item -> {
             item.setStatus(ApplicationTypeEnum.COMPLETED.name());
 
+            User worker = userDao.findById(item.getUserId()).orElseThrow();
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_DONE, worker, null);
+
             Job job = jobDao.getById(item.getJobId());
             int totalPayment = 0;
 
