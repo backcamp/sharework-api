@@ -16,9 +16,10 @@ public class SwaggerConfig {
     @Value("${spring.profiles.active:}")
     private String profile;
 
+    //any()
     @Bean
     public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2).useDefaultResponseMessages(false).select().apis(RequestHandlerSelectors.any()).paths(PathSelectors.any()).build().apiInfo(apiInfo());
+        return new Docket(DocumentationType.SWAGGER_2).useDefaultResponseMessages(false).select().apis(RequestHandlerSelectors.basePackage( "com.sharework.controller" )).paths(PathSelectors.any()).build().apiInfo(apiInfo());
     }
 
     private ApiInfo apiInfo() {
