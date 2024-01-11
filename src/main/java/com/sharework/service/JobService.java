@@ -106,7 +106,7 @@ public class JobService {
                 JobTypeEnum.CLOSED.name(),
                 JobTypeEnum.STARTED.name()
         );
-        com.sharework.response.model.application.GroupStatus status = new com.sharework.response.model.application.GroupStatus();
+        com.sharework.response.model.application.GroupStatus status = new com.sharework.response.model.application.GroupStatus();  // FIXME: refactor with GroupStatus I/F.
         if (Objects.equals(job.get().getStatus(), JobTypeEnum.COMPLETED.name())) {
             GroupStatus groupStatus = applicationDao.completedGroupStatus(job.get().getId());
 
