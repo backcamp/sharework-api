@@ -64,7 +64,10 @@ public class Schedule {
         List<Job> jobStartedList = jobDao.getEndTimeoutStartedJobs();
         jobStartedList.forEach(item -> {
             item.setStatus(JobTypeEnum.COMPLETED.name());
-            alarmService.sendAlarmType(AlarmTypeEnum.JOB_FINISHED, null, item);
+
+            Application application = applicationDao.findFirstByJobIdOrderById(item.getId());
+            User worker = userDao.findById(application.getUserId()).orElseThrow();
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_FINISHED, worker, item);
         });
 
         //status가 open,closed이며, 현재시간이 마감시간을 넘겼다면 falied
@@ -87,9 +90,9 @@ public class Schedule {
             item.setStatus(ApplicationTypeEnum.COMPLETED.name());
 
             User worker = userDao.findById(item.getUserId()).orElseThrow();
-            alarmService.sendAlarmType(AlarmTypeEnum.JOB_DONE, worker, null);
-
             Job job = jobDao.getById(item.getJobId());
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_DONE, worker, job);
+
             int totalPayment = 0;
 
             if (job.getPayType().equals("일급"))
