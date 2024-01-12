@@ -1,6 +1,7 @@
 package com.sharework.service;
 
 import com.sharework.dao.LocationFavoriteDao;
+import com.sharework.global.NotFoundException;
 import com.sharework.manager.TokenIdentification;
 import com.sharework.model.LocationFavorite;
 import com.sharework.request.model.LocationFavoriteRequest;
@@ -26,9 +27,7 @@ public class LocationFavoriteService {
     TokenIdentification identification;
 
 
-    public ResponseEntity getLocationFavoriteList(String accessToken) {
-        ResponseEntity response = null;
-
+    public APIgetLoactionFavoriteList getLocationFavoriteList(String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         List<LocationFavorite> locationFavoriteList = locationFavoriteDao.findByUserId(userId);
@@ -43,26 +42,16 @@ public class LocationFavoriteService {
         APIgetLoactionFavoriteList.Payload payload = new APIgetLoactionFavoriteList.Payload(locationList);
         BasicMeta meta = new BasicMeta(true, "");
 
-        APIgetLoactionFavoriteList apIgetLoactionFavoriteList = new APIgetLoactionFavoriteList(payload, meta);
-        response = new ResponseEntity<>(apIgetLoactionFavoriteList, HttpStatus.OK);
-        return response;
+        return new APIgetLoactionFavoriteList(payload, meta);
     }
 
     @Transactional
-    public ResponseEntity insertLocationFavorite(LocationFavoriteRequest locationFavoriteRequest, String accessToken) {
-        ResponseEntity response = null;
-        BasicMeta meta = new BasicMeta(true, "즐겨찾기가 성공적으로 저장되었습니다.");
-        SuccessResponse result = new SuccessResponse(meta);
-
+    public SuccessResponse insertLocationFavorite(LocationFavoriteRequest locationFavoriteRequest, String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
 
         int itemCount = locationFavoriteRequest.getLocalInfomations().length;
         if (itemCount >= 5) {
-            meta.setStatus(false);
-            meta.setMessage("위치는 최대 5개까지 등록이 가능합니다.");
-            result.setMeta(meta);
-            response = new ResponseEntity<>(result, HttpStatus.OK);
-            return response;
+            throw new NotFoundException("위치는 최대 5개까지 등록이 가능합니다.");
         }
 
 
@@ -79,20 +68,12 @@ public class LocationFavoriteService {
 //                .starRating(registerReview.getStartRating())
 //                .giverId(userId).reviewType("GIVER")
 //                .build()));
-        result.setMeta(meta);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "즐겨찾기가 성공적으로 저장되었습니다."));
     }
 
-    public ResponseEntity deleteLocationFavorite(long id) {
-        ResponseEntity response = null;
-        BasicMeta meta = new BasicMeta(true, "즐겨찾기가 성공적으로 삭제되었습니다.");
-
+    public SuccessResponse deleteLocationFavorite(long id) {
         locationFavoriteDao.deleteById(id);
 
-        SuccessResponse result = new SuccessResponse(meta);
-        result.setMeta(meta);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "즐겨찾기가 성공적으로 삭제되었습니다."));
     }
 }
