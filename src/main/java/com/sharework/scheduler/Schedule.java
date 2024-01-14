@@ -52,15 +52,21 @@ public class Schedule {
         //application schedule
 
         //status가 appied이며, 현재시간이 마감시간을 넘겼다면 failed
-        List<Application> applicationAppliedList = applicationDao.getEndTimeoutAppliedApplication();
+        List<Application> applicationAppliedList = applicationDao.findByEndAtLessThanEqualAndStatusEqualsOrderByEndAtAsc(
+                LocalDateTime.now(), ApplicationTypeEnum.APPLIED.name()
+        );
         applicationAppliedList.forEach(item -> item.setStatus(ApplicationTypeEnum.FAILED.name()));
 
         //status가 hired_request이며, 현재시간이 마감시간을 넘겼다면 rejected
-        List<Application> applicationHiredRequestList = applicationDao.getEndTimeoutHiredRequestApplication();
+        List<Application> applicationHiredRequestList = applicationDao.findByEndAtLessThanEqualAndStatusEqualsOrderByEndAtAsc(
+                LocalDateTime.now(), ApplicationTypeEnum.HIRED_REQUEST.name()
+        );
         applicationHiredRequestList.forEach(item -> item.setStatus(ApplicationTypeEnum.REJECTED.name()));
 
         //status가 hired_approved, 현재시간이 마감시간을 넘겼다면 completed
-        List<Application> applicationHiredApprovedList = applicationDao.getEndTimeoutHiredApprovedApplication();
+        List<Application> applicationHiredApprovedList = applicationDao.findByEndAtLessThanEqualAndStatusEqualsOrderByEndAtAsc(
+                LocalDateTime.now(), ApplicationTypeEnum.HIRED_APPROVED.name()
+        );
         applicationHiredApprovedList.forEach(item -> {
             item.setStatus(ApplicationTypeEnum.COMPLETED.name());
 
@@ -82,7 +88,8 @@ public class Schedule {
 
 
         //status가 hired이며, 현재시간이 마감시간을 넘겼다면 noshow
-        List<Application> applicationHiredList = applicationDao.getEndTimeoutHiredApplication();
+        List<Application> applicationHiredList = applicationDao.findByEndAtLessThanEqualAndStatusEqualsOrderByEndAtAsc(
+                LocalDateTime.now(), ApplicationTypeEnum.HIRED.name());
         applicationHiredList.forEach(item -> item.setStatus(ApplicationTypeEnum.NO_SHOW.name()));
     }
 
