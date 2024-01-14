@@ -48,19 +48,7 @@ public class Schedule {
         });
     }
 
-
-    private void endAtAutoUpdate() {
-        //job schedule
-        //status가 started이며, 현재시간이 마감시간을 넘겼다면 COMPLTED 시간으로 돈 계산하여 application_total_payment에 저장한다.
-        List<Job> jobStartedList = jobDao.getEndTimeoutStartedJobs();
-        jobStartedList.forEach(item -> {
-            item.setStatus(JobTypeEnum.COMPLETED.name());
-        });
-
-        //status가 open,closed이며, 현재시간이 마감시간을 넘겼다면 falied
-        List<Job> jobOpenAndClosedList = jobDao.getEndTimeoutOpenAndClosedJobs();
-        jobOpenAndClosedList.forEach(item -> item.setStatus(JobTypeEnum.FAILED.name()));
-
+    private void updateEndAtApplicationStatus() {
         //application schedule
 
         //status가 appied이며, 현재시간이 마감시간을 넘겼다면 failed
@@ -96,5 +84,20 @@ public class Schedule {
         //status가 hired이며, 현재시간이 마감시간을 넘겼다면 noshow
         List<Application> applicationHiredList = applicationDao.getEndTimeoutHiredApplication();
         applicationHiredList.forEach(item -> item.setStatus(ApplicationTypeEnum.NO_SHOW.name()));
+    }
+
+    private void endAtAutoUpdate() {
+        //job schedule
+        //status가 started이며, 현재시간이 마감시간을 넘겼다면 COMPLTED 시간으로 돈 계산하여 application_total_payment에 저장한다.
+        List<Job> jobStartedList = jobDao.getEndTimeoutStartedJobs();
+        jobStartedList.forEach(item -> {
+            item.setStatus(JobTypeEnum.COMPLETED.name());
+        });
+
+        //status가 open,closed이며, 현재시간이 마감시간을 넘겼다면 falied
+        List<Job> jobOpenAndClosedList = jobDao.getEndTimeoutOpenAndClosedJobs();
+        jobOpenAndClosedList.forEach(item -> item.setStatus(JobTypeEnum.FAILED.name()));
+
+        updateEndAtApplicationStatus();
     }
 }
