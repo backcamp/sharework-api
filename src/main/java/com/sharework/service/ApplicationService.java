@@ -130,7 +130,6 @@ public class ApplicationService {
     }
 
     public SuccessResponse updateHiredRequest(long id, String accessToken) {
-        long userId = identification.getHeadertoken(accessToken);
 
         Optional<Application> application = applicationDao.findById(id);
         Optional<Job> job = jobDao.findById(application.get().getJobId());
@@ -163,6 +162,10 @@ public class ApplicationService {
             application.get().setStatus(ApplicationTypeEnum.HIRED_REQUEST.name());
             applicationDao.save(application.get());
 
+            long userId = application.get().getUserId();
+            User worker = userDao.findById(userId).orElseThrow();
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_START_REQUESTED, worker, job.get());
+
             return new SuccessResponse(new BasicMeta(true, "성공적으로 업무 요청하였습니다."));
         } else {
             return new SuccessResponse(new BasicMeta(false, "업무가 종료된 공고입니다."));
@@ -192,6 +195,7 @@ public class ApplicationService {
 
     public SuccessResponse updateHired(List<Long> applicationIds, String accessToken) {
         long jobId = -1;
+
         for (Long id : applicationIds) {
             Optional<Application> application = applicationDao.findById(id);
 
