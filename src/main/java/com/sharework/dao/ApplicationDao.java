@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,6 +69,7 @@ public interface ApplicationDao extends JpaRepository<Application, Long> {
     @Query(value = "SELECT * FROM application WHERE end_at <= now() and status = 'HIRED'", nativeQuery = true)
     List<Application> getEndTimeoutHiredApplication();
 
+    List<Application> findByEndAtLessThanEqualAndStatusEqualsOrderByEndAtAsc(LocalDateTime endAt, String status);
 
     @Query(value = "SELECT sum(date_part('hour', app.end_at-app.start_at)) as hour FROM application app WHERE user_id =  :userId and job_id in(select jt.job_id from job_tag jt where jt.contents = :contents)", nativeQuery = true)
     int countByUserIdAndTagContents(@Param("userId") long userId, @Param("contents") String contents);
