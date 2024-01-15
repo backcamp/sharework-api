@@ -7,7 +7,6 @@ import com.sharework.dao.*;
 import com.sharework.manager.TokenIdentification;
 import com.sharework.model.*;
 import com.sharework.request.model.APIApplicationApplied;
-import com.sharework.request.model.AlarmRequest;
 import com.sharework.response.model.Coordinate;
 import com.sharework.response.model.Pagination;
 import com.sharework.response.model.SuccessResponse;
@@ -22,11 +21,9 @@ import com.sharework.response.model.job.JobTagList;
 import com.sharework.response.model.meta.BasicMeta;
 import com.sharework.response.model.user.Giver;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -201,10 +198,18 @@ public class ApplicationService {
             if (application.get().getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
                 application.get().setStatus(ApplicationTypeEnum.HIRED.name());
                 applicationDao.save(application.get());
+
+                long userId = application.get().getUserId();
+                User worker = userDao.findById(userId).orElseThrow();
+                Job job = jobDao.findById(application.get().getJobId()).orElseThrow();
+                alarmService.sendAlarmType(AlarmTypeEnum.SELECTED, worker, job);
             }
 
             jobId = application.get().getJobId();
         }
+
+        if(jobId == -1)
+            return new SuccessResponse(new BasicMeta(false, "일감이 존재하지 않습니다."));
 
         Optional<Job> job = jobDao.findById(jobId);
         int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.get().getId(), "HIRED");
