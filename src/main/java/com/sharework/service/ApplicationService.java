@@ -192,32 +192,31 @@ public class ApplicationService {
 
     public SuccessResponse updateHired(List<Long> applicationIds, String accessToken) {
         long jobId = -1;
-
         for (Long id : applicationIds) {
-            Application application = applicationDao.findById(id).orElseThrow();
+            Optional<Application> application = applicationDao.findById(id);
 
-            if (application.getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
-                application.setStatus(ApplicationTypeEnum.HIRED.name());
-                applicationDao.save(application);
+            if (application.get().getStatus().equals(ApplicationTypeEnum.APPLIED.name())) {
+                application.get().setStatus(ApplicationTypeEnum.HIRED.name());
+                applicationDao.save(application.get());
 
-                long userId = application.getUserId();
+                long userId = application.get().getUserId();
                 User worker = userDao.findById(userId).orElseThrow();
-                Job job = jobDao.findById(application.getJobId()).orElseThrow();
+                Job job = jobDao.findById(application.get().getJobId()).orElseThrow();
                 alarmService.sendAlarmType(AlarmTypeEnum.SELECTED, worker, job);
             }
 
-            jobId = application.getJobId();
+            jobId = application.get().getJobId();
         }
 
         if(jobId == -1)
             return new SuccessResponse(new BasicMeta(false, "일감이 존재하지 않습니다."));
 
-        Job job = jobDao.findById(jobId).orElseThrow();
-        int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.getId(), "HIRED");
+        Optional<Job> job = jobDao.findById(jobId);
+        int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.get().getId(), "HIRED");
         // 모집인원이 다 차면 공고 상태 close
-        if (job.getPersonnel() <= hiredCount && job.getStatus().equals(JobTypeEnum.OPEN.name())) {
-            job.setStatus(JobTypeEnum.CLOSED.name());
-            jobDao.save(job);
+        if (job.get().getPersonnel() <= hiredCount && job.get().getStatus().equals(JobTypeEnum.OPEN.name())) {
+            job.get().setStatus(JobTypeEnum.CLOSED.name());
+            jobDao.save(job.get());
         }
 
         return new SuccessResponse(new BasicMeta(true, "채택이 완료되었습니다."));
