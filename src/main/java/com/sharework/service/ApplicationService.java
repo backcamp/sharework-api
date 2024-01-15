@@ -218,9 +218,9 @@ public class ApplicationService {
         Optional<Job> job = jobDao.findById(jobId);
         int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.get().getId(), "HIRED");
         // 모집인원이 다 차면 공고 상태 close
-        if (job.getPersonnel() <= hiredCount && job.getStatus().equals(JobTypeEnum.OPEN.name())) {
-            job.setStatus(JobTypeEnum.CLOSED.name());
-            jobDao.save(job);
+        if (job.get().getPersonnel() <= hiredCount && job.get().getStatus().equals(JobTypeEnum.OPEN.name())) {
+            job.get().setStatus(JobTypeEnum.CLOSED.name());
+            jobDao.save(job.get());
         }
 
         return new SuccessResponse(new BasicMeta(true, "채택이 완료되었습니다."));
