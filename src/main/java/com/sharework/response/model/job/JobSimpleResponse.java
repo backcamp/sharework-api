@@ -1,6 +1,7 @@
 package com.sharework.response.model.job;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.sharework.response.model.application.GroupStatus;
 import com.sharework.response.model.meta.BasicMeta;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,7 +24,7 @@ public class JobSimpleResponse {
     @AllArgsConstructor
     public static class JobSimplePayload {
 
-        private JobSimple jobDetail;
+        private JobSimple jobOverviews;
     }
 
     @Getter
@@ -32,6 +33,8 @@ public class JobSimpleResponse {
     public static class JobSimple {
 
         private LocalDateTime endAt;
+        private long id;
+        private GroupStatus groupStatus;
         private int pay;
         private LocalDateTime startAt;
         private String status;
