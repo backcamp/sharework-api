@@ -205,8 +205,8 @@ public class ApplicationService {
 
                 long userId = application.get().getUserId();
                 User worker = userDao.findById(userId).orElseThrow();
-                Optional<Job> job = jobDao.findById(application.get().getJobId());
-                alarmService.sendAlarmType(AlarmTypeEnum.SELECTED, worker, job.get());
+                Job job = jobDao.findById(application.get().getJobId()).orElseThrow();
+                alarmService.sendAlarmType(AlarmTypeEnum.SELECTED, worker, job);
             }
 
             jobId = application.get().getJobId();
@@ -215,8 +215,8 @@ public class ApplicationService {
         if(jobId == -1)
             return new SuccessResponse(new BasicMeta(false, "일감이 존재하지 않습니다."));
 
-        Job job = jobDao.findById(jobId).orElseThrow();
-        int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.getId(), "HIRED");
+        Optional<Job> job = jobDao.findById(jobId);
+        int hiredCount = applicationDao.countByJobIdAndStatusContaining(job.get().getId(), "HIRED");
         // 모집인원이 다 차면 공고 상태 close
         if (job.getPersonnel() <= hiredCount && job.getStatus().equals(JobTypeEnum.OPEN.name())) {
             job.setStatus(JobTypeEnum.CLOSED.name());
