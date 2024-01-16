@@ -15,6 +15,8 @@ import java.util.List;
 public interface ApplicationDao extends JpaRepository<Application, Long> {
     List<Application> findUserIdByJobId(long jobId);
 
+    Application findFirstByJobIdOrderById(long jobId);
+
     Application findByJobIdAndUserId(long jobId, long userId);
 
     List<Application> findByJobIdAndUserIdAndStatusContaining(long jobId, long userId, String status);
