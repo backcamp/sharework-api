@@ -111,6 +111,10 @@ public class Schedule {
         List<Job> jobStartedList = jobDao.getEndTimeoutStartedJobs();
         jobStartedList.forEach(item -> {
             item.setStatus(JobTypeEnum.COMPLETED.name());
+
+            Application application = applicationDao.findFirstByJobIdOrderById(item.getId());
+            User worker = userDao.findById(application.getUserId()).orElseThrow();
+            alarmService.sendAlarmType(AlarmTypeEnum.JOB_FINISHED, worker, item); // dummy worker
         });
 
         //status가 open,closed이며, 현재시간이 마감시간을 넘겼다면 falied
