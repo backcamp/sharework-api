@@ -13,4 +13,5 @@ public class WorkerNameAndPhoneNumber {
     private String name;
     private String phoneNumber;
     private String userProfileImg;
+    private String status;
 }

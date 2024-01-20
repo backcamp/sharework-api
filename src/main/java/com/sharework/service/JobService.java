@@ -602,12 +602,13 @@ public class JobService {
 
         Job job = jobOptional.get();
         List<JobTag> jobTagList = jobTagDao.findByJobId(job.getId());
-        long workerId = applicationDao.findById(applicationId).get().getUserId();
+        Application application = applicationDao.findById(applicationId).orElseThrow();
+        long workerId = application.getUserId();
         User worker = userDao.findById(workerId).get();
         User giver = userDao.findById(job.getUserId()).get();
 
         return JobHiredInfoResponse.builder()
-                .payload(JobHiredInfoPayload.of(job, jobTagList, worker, giver))
+                .payload(JobHiredInfoPayload.of(job, jobTagList, worker, giver, application))
                 .meta(new BasicMeta(true, ""))
                 .build();
 
