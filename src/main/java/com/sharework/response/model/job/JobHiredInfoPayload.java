@@ -1,5 +1,6 @@
 package com.sharework.response.model.job;
 
+import com.sharework.model.Application;
 import com.sharework.model.Job;
 import com.sharework.model.JobTag;
 import com.sharework.model.User;
@@ -38,7 +39,7 @@ public class JobHiredInfoPayload {
         this.giverNameAndPhoneNumber = giverNameAndPhoneNumber;
     }
 
-    public static JobHiredInfoPayload of(Job job, List<JobTag> jobTagList, User worker, User giver) {
+    public static JobHiredInfoPayload of(Job job, List<JobTag> jobTagList, User worker, User giver, Application application) {
         return JobHiredInfoPayload.builder()
                 .title(job.getTitle())
                 .startAt(job.getStartAt())
@@ -51,6 +52,7 @@ public class JobHiredInfoPayload {
                         .name(worker.getName())
                         .phoneNumber(worker.getPhoneNumber())
                         .userProfileImg(worker.getProfileImg())
+                        .status(application.getStatus())
                         .build())
                 .giverNameAndPhoneNumber(GiverNameAndPhoneNumber.builder()
                         .name(giver.getName())
