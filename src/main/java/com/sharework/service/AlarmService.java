@@ -15,11 +15,14 @@ import com.sharework.model.UserAlarm;
 import com.sharework.request.model.AlarmRequest;
 import com.sharework.response.model.SuccessResponse;
 import com.sharework.response.model.meta.BasicMeta;
-import java.time.LocalDateTime;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -29,6 +32,16 @@ public class AlarmService {
     private final TokenIdentification identification;
     private final UserDao userDao;
     private final UserAlarmDao userAlarmDao;
+
+    @Value("${spring.profiles.active:}")
+    private String profile;
+
+    public String getAppName() {
+        if (Objects.equals(profile, "prod"))
+            return "sharework";
+        else
+            return "shareworkcbt";
+    }
 
     public SuccessResponse register(String fcmToken, String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
@@ -70,6 +83,7 @@ public class AlarmService {
     public boolean sendAlarmType(AlarmTypeEnum alarmType, User worker, Job job) {
         String title = "";
         Optional<UserAlarm> targetUserAlarm = Optional.empty();
+        String scheme = String.format(alarmType.getScheme(), getAppName(), job.getId());
 
         switch (alarmType) {
             case JOB_APPLICATION_RECEIVED:
@@ -106,6 +120,7 @@ public class AlarmService {
                 .setTitle(title)
                 .setBody(alarmType.getMessage())
                 .build())
+            .putData("scheme", scheme)
             .setToken(targetFCMToken)
             .build();
 
