@@ -52,8 +52,13 @@ public class Schedule {
         jobList.forEach(item -> {
             if (applicationDao.countByJobIdAndStatusContaining(item.getId(), ApplicationTypeEnum.HIRED.name()) > 0) {
                 item.setStatus(JobTypeEnum.STARTED.name());
-            } else
+            } else {
                 item.setStatus(JobTypeEnum.FAILED.name());
+
+                Application application = applicationDao.findFirstByJobIdOrderById(item.getId());
+                User worker = userDao.findById(application.getUserId()).orElseThrow();
+                alarmService.sendAlarmType(AlarmTypeEnum.JOB_RECRUIT_CLOSED, worker, item); // dummy worker
+            }
         });
     }
 
