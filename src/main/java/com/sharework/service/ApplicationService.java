@@ -13,6 +13,7 @@ import com.sharework.response.model.SuccessResponse;
 import com.sharework.response.model.application.ApplicationHistoryResponse;
 import com.sharework.response.model.application.ApplicationHistoryResponse.AhApplication;
 import com.sharework.response.model.application.ApplicationHistoryResponse.AhPayload;
+import com.sharework.response.model.application.ApplicationResponse;
 import com.sharework.response.model.application.ApplicationStatusOverviewResponse;
 import com.sharework.response.model.application.ApplicationStatusOverviewResponse.ApplicationStatusOverviewPayload;
 import com.sharework.response.model.application.ApplicationStatusOverviewResponse.StatusOverview;
@@ -127,6 +128,52 @@ public class ApplicationService {
 
         BasicMeta meta = new BasicMeta(true, "");
         return new ApplicationHistoryResponse(payload, meta);
+    }
+
+    public ApplicationResponse getApplication(long id, String accessToken) {
+        long userId = identification.getHeadertoken(accessToken);
+
+        LocalDateTime nowTime = LocalDateTime.now();
+
+        Application application = applicationDao.findById(id).orElseThrow();
+        Job job = jobDao.findById(application.getJobId()).orElseThrow();
+
+        // 태그
+        List<JobTag> tags = jobTagDao.findByJobId(application.getJobId());
+        List<JobTagList> jobTags = new ArrayList<>();
+        for (JobTag tag : tags) {
+            jobTags.add(new JobTagList(tag.getId(), tag.getContents()));
+        }
+
+        // giver
+        User user = userDao.findByIdAndDeleteYn(job.getUserId(), "N").orElseThrow();
+        Giver giver = new Giver(user.getId(), user.getName(), user.getProfileImg());
+
+        //Coordinate
+        Coordinate coordinate = new Coordinate(job.getLat(), job.getLng());
+
+        // jobOverview
+
+        //totalPayment -> COMPLETED일때만 진행.
+        int totalPayment = 0;
+
+        boolean isReviewed = false;
+        if (application.getStatus().equals(ApplicationTypeEnum.COMPLETED.name())) {
+            if (applicationTotalPaymentDao.getByApplicationId(application.getId()) != null)
+                totalPayment = applicationTotalPaymentDao.getByApplicationId(application.getId()).getTotalPayment();
+            // isReview 체크
+            isReviewed = reviewDao.existsByWorkerIdAndJobIdAndReviewType(application.getUserId(), job.getId(), "WORKER");
+        }
+        JobOverview jobOverview = JobOverview.builder().id(job.getId()).title(job.getTitle()).coordinate(coordinate).giver(giver).startAt(job.getStartAt()).endAt(job.getEndAt()).pay(job.getPay()).payType(job.getPayType()).totalPay(totalPayment).tags(jobTags).build();
+
+        //30분 이내라면 true로 변경
+        boolean isRequestPossible = false;
+        if (nowTime.plusMinutes(30).isAfter(job.getStartAt())) isRequestPossible = true;
+
+        ApplicationResponse.ApplicationPayload payload = new ApplicationResponse.ApplicationPayload(new AhApplication(application.getId(), application.getStatus(), jobOverview, isRequestPossible, isReviewed));
+
+        BasicMeta meta = new BasicMeta(true, "");
+        return new ApplicationResponse(payload, meta);
     }
 
     public SuccessResponse updateHiredRequest(long id, String accessToken) {

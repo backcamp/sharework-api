@@ -4,6 +4,7 @@ import com.sharework.request.model.APIApplicationApplied;
 import com.sharework.response.model.Response;
 import com.sharework.response.model.SuccessResponse;
 import com.sharework.response.model.application.ApplicationHistoryResponse;
+import com.sharework.response.model.application.ApplicationResponse;
 import com.sharework.response.model.application.ApplicationStatusOverviewResponse;
 import com.sharework.service.ApplicationService;
 import io.swagger.annotations.ApiOperation;
@@ -44,6 +45,15 @@ public class ApplicationController {
                                              @ApiParam(required = true) int page,
                                              @RequestHeader("access-token") String accessToken) {
         ApplicationHistoryResponse response = applicationService.getApplicationList(status, page, accessToken);
+        return ResponseEntity.ok(response);
+    }
+
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = ApplicationResponse.class),
+        @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
+    @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(httpMethod = "GET", value = "지원자 해당 일감 제공")
+    public ResponseEntity<ApplicationResponse> getApplication(@PathVariable long id, @RequestHeader("access-token") String accessToken) {
+        ApplicationResponse response = applicationService.getApplication(id, accessToken);
         return ResponseEntity.ok(response);
     }
 
