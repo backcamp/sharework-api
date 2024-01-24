@@ -97,7 +97,6 @@ public class AlarmService {
                 targetUserAlarm = userAlarmDao.findByUserId(worker.getId());
                 break;
             case JOB_RECRUIT_CLOSED:
-                break;
             case JOB_FINISHED:
                 title = alarmType.getTitle();
                 targetUserAlarm = userAlarmDao.findByUserId(job.getUserId());

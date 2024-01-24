@@ -55,8 +55,7 @@ public class Schedule {
             } else {
                 item.setStatus(JobTypeEnum.FAILED.name());
 
-                Application application = applicationDao.findFirstByJobIdOrderById(item.getId());
-                User worker = userDao.findById(application.getUserId()).orElseThrow();
+                User worker = userDao.findById(item.getUserId()).orElseThrow();
                 alarmService.sendAlarmType(AlarmTypeEnum.JOB_RECRUIT_CLOSED, worker, item); // dummy worker
             }
         });
