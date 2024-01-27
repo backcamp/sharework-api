@@ -44,7 +44,19 @@ public enum AlarmTypeEnum {
         "알바완료",
         "고생하셨습니다.",
         "%s://worker/tab/applicationStatus/completed/receipt?jobID=%d"
-    ); // 알바 완료 (알바한테 알림)
+    ), // 알바 완료 (알바한테 알림)
+
+    REVIEW_FINISHED(
+        "리뷰를 작성해주었어요",
+        "",
+        ""
+    ), // 리뷰 완료 (업주한테 알림)
+
+    REVIEW_DONE(
+        "리뷰를 작성해주었어요",
+        "",
+        ""
+    ); // 리뷰 완료 (알바한테 알림)
 
     private final String title;
     private final String message;
