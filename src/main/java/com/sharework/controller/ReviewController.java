@@ -27,15 +27,17 @@ public class ReviewController {
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "사용자가 받은 리뷰를 제공한다.", notes = "give reviewInfo")
-    public ResponseEntity getUserReview(@RequestHeader("access-token") String accessToken) {
-        return reviewService.giveUserReview(accessToken);
+    public ResponseEntity<APIGetReview> getUserReview(@RequestHeader("access-token") String accessToken) {
+        APIGetReview response = reviewService.giveUserReview(accessToken);
+        return ResponseEntity.ok(response);
     }
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = SuccessResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @PostMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "POST", value = "리뷰정보를 저장한다.", notes = "give reviewInfo")
-    public ResponseEntity insertReview(@RequestHeader("access-token") String accessToken, @RequestBody RegisterReview registerReview) {
-        return reviewService.insertReview(accessToken, registerReview);
+    public ResponseEntity<SuccessResponse> insertReview(@RequestHeader("access-token") String accessToken, @RequestBody RegisterReview registerReview) {
+        SuccessResponse response = reviewService.insertReview(accessToken, registerReview);
+        return ResponseEntity.ok(response);
     }
 }

@@ -36,10 +36,7 @@ public class ReviewService {
 
     private final UserRateDao userRateDao;
 
-    public ResponseEntity giveUserReview(String accessToken) {
-        ResponseEntity response = null;
-        Response error = null;
-
+    public APIGetReview giveUserReview(String accessToken) {
         long userId = identification.getHeadertoken(accessToken);
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
         List<Review> reviewList = null;
@@ -74,17 +71,11 @@ public class ReviewService {
         });
 
         BasicMeta meta = new BasicMeta(true, "");
-        APIGetReview apiGetReview = new APIGetReview(new APIGetReview.Payload(quickReviewRankList, detailReview), meta);
-        response = new ResponseEntity<>(apiGetReview, HttpStatus.OK);
-        return response;
+        return new APIGetReview(new APIGetReview.Payload(quickReviewRankList, detailReview), meta);
     }
 
     @Transactional
-    public ResponseEntity insertReview(String accessToken, RegisterReview registerReview) {
-        ResponseEntity response = null;
-        Response error = null;
-        BasicMeta meta;
-
+    public SuccessResponse insertReview(String accessToken, RegisterReview registerReview) {
         long userId = identification.getHeadertoken(accessToken);
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
 
@@ -160,9 +151,6 @@ public class ReviewService {
                     userRateDao.save(UserRate.builder().userId(setOpponentId).userType(opponentType).rate(setRate).build());
                 });
 
-        meta = new BasicMeta(true, "리뷰가 성공적으로 저장되었습니다.");
-        SuccessResponse result = new SuccessResponse(meta);
-        response = new ResponseEntity<>(result, HttpStatus.OK);
-        return response;
+        return new SuccessResponse(new BasicMeta(true, "리뷰가 성공적으로 저장되었습니다."));
     }
 }
