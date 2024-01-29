@@ -13,6 +13,7 @@ import com.sharework.response.model.UserChecklistResponse;
 import com.sharework.response.model.meta.BasicMeta;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.Optional;
 
 @Service
@@ -69,7 +70,8 @@ public class ChecklistService {
         }
 
         BasicMeta meta = new BasicMeta(true, "체크리스트 제공이 완료되었습니다.");
-        UserChecklistPayload userChecklistPayload = new UserChecklistPayload(userChecklist.get());
+        UserChecklistPayload.Checklist checklist = new UserChecklistPayload.Checklist(id, userChecklist.get().getContents());
+        UserChecklistPayload userChecklistPayload = new UserChecklistPayload(checklist);
         return new UserChecklistResponse(userChecklistPayload, meta);
     }
 
