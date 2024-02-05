@@ -47,6 +47,18 @@ public class UserController {
         return ResponseEntity.ok(new APIGetUser(apiGetUserPayload, meta));
     }
 
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIGetUser.class),
+            @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
+    @GetMapping(value = "/{id}",produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(httpMethod = "GET", value = "id를 통한 유저 정보")
+    public ResponseEntity<APIGetUser> getUserById(@PathVariable("id") Long id) {
+        Profile profile = userService.getUserById(id);
+
+        BasicMeta meta = new BasicMeta(true, "");
+        APIGetUserPayload apiGetUserPayload = new APIGetUserPayload(profile);
+        return ResponseEntity.ok(new APIGetUser(apiGetUserPayload, meta));
+    }
+
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = Response.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @PatchMapping(produces = {MediaType.APPLICATION_JSON_VALUE})

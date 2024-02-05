@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,14 +38,22 @@ public class ReviewService {
     private final UserRateDao userRateDao;
 
     public APIGetReview giveUserReview(String accessToken) {
-        long userId = identification.getHeadertoken(accessToken);
-        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
+        long id = identification.getHeadertoken(accessToken);
+       return giveUserReviewInfo(id);
+    }
+
+    public APIGetReview giveUserReviewById(Long id) {
+        return giveUserReviewInfo(id);
+    }
+
+    public APIGetReview giveUserReviewInfo(Long id) {
+        User user = userDao.findByIdAndDeleteYn(id, "N").orElseThrow();
         List<Review> reviewList = null;
 
         if (user.getUserType().equals("worker"))
-            reviewList = reviewDao.findByWorkerIdAndReviewType(userId, "GIVER");
+            reviewList = reviewDao.findByWorkerIdAndReviewType(id, "GIVER");
         else
-            reviewList = reviewDao.findByGiverIdAndReviewType(userId, "WORKER");
+            reviewList = reviewDao.findByGiverIdAndReviewType(id, "WORKER");
 
         List<DetailReview> detailReview = new ArrayList<>();
 
@@ -62,7 +71,7 @@ public class ReviewService {
             detailReview.add(new DetailReview(review.getId(), giver, review.getComment(), review.getCreatedAt(), review.getStarRating(), jobTagList));
         });
 
-        List<UserReview> userReviewList = userReviewDao.getByUserIdAndUserType(userId, user.getUserType().toUpperCase());
+        List<UserReview> userReviewList = userReviewDao.getByUserIdAndUserType(id, user.getUserType().toUpperCase());
         List<QuickReviewRank> quickReviewRankList = new ArrayList<>();
         userReviewList.forEach(userReview -> {
             String contents = baseReviewDao.getById(userReview.getBaseReviewId()).getContents();

@@ -32,6 +32,15 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
+    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIGetReview.class),
+            @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
+    @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(httpMethod = "GET", value = "id를 받아 리뷰를 제공한다.", notes = "give reviewInfo By Id")
+    public ResponseEntity<APIGetReview> getUserReview(@PathVariable("id") Long id) {
+        APIGetReview response = reviewService.giveUserReviewById(id);
+        return ResponseEntity.ok(response);
+    }
+
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = SuccessResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = ErrorResponse.class)})
     @PostMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
