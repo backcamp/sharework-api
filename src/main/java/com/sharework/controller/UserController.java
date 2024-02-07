@@ -51,7 +51,7 @@ public class UserController {
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
     @GetMapping(value = "/{id}",produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(httpMethod = "GET", value = "id를 통한 유저 정보")
-    public ResponseEntity<APIGetUser> getUserById(@PathVariable("id") Long id) {
+    public ResponseEntity<APIGetUser> getUser(@PathVariable("id") Long id) {
         Profile profile = userService.getUserById(id);
 
         BasicMeta meta = new BasicMeta(true, "");
