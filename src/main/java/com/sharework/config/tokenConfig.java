@@ -36,7 +36,9 @@ public class tokenConfig implements WebMvcConfigurer {
         patterns.add("/api/v3/review");
         patterns.add("/api/v3/base-review");
         patterns.add("/api/v3/application/summary");
-        patterns.add("/api/v3/user/**");
+        patterns.add("/api/v3/user/img");
+        patterns.add("/api/v3/user/tag");
+        patterns.add("/api/v3/user");
 
         registry.addInterceptor(accessTokenInterceptor).addPathPatterns(patterns).excludePathPatterns("/api/v3/job/cluster");
 

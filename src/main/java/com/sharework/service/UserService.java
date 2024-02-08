@@ -194,9 +194,16 @@ public class UserService {
     }
 
     public Profile getUser(String accessToken) {
-        long userId = identification.getHeadertoken(accessToken);
+        long id = identification.getHeadertoken(accessToken);
+        return getUserInfo(id);
+    }
 
-        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow(() -> new ResponseStatusException(HttpStatus.OK));
+    public Profile getUserById(Long id) {
+        return getUserInfo(id);
+    }
+
+    public Profile getUserInfo(Long id) {
+        User user = userDao.findByIdAndDeleteYn(id, "N").orElseThrow(() -> new ResponseStatusException(HttpStatus.OK));
 
         Giver responseUser = new Giver(user.getId(), user.getName(), user.getProfileImg());
         int jobCount = jobDao.countByUserId(user.getId());
@@ -210,16 +217,17 @@ public class UserService {
         return profile;
     }
 
+
     @Transactional
     public void updateUser(String accessToken, APIUpdateUser request) {
         long userId = identification.getHeadertoken(accessToken);
 
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
 
-        if(request.getName() != null)
-           user.setName(request.getName());
-        if(request.getComment() != null)
-           user.setComment(request.getComment());
+        if (request.getName() != null)
+            user.setName(request.getName());
+        if (request.getComment() != null)
+            user.setComment(request.getComment());
     }
 
     public List<TagRank> getTagRank(String accessToken) {
