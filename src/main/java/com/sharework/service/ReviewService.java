@@ -1,5 +1,6 @@
 package com.sharework.service;
 
+import com.sharework.common.AlarmTypeEnum;
 import com.sharework.common.ApplicationTypeEnum;
 import com.sharework.dao.*;
 import com.sharework.manager.TokenIdentification;
@@ -36,6 +37,7 @@ public class ReviewService {
     private final JobDao jobDao;
 
     private final UserRateDao userRateDao;
+    private final AlarmService alarmService;
 
     public APIGetReview giveUserReview(String accessToken) {
         long id = identification.getHeadertoken(accessToken);
@@ -89,6 +91,7 @@ public class ReviewService {
         User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
 
         Long opponentId = null;
+        AlarmTypeEnum alarmTypeEnum = null;
 
         //worker -> giver
         if (user.getUserType().equals("worker")) {
@@ -100,6 +103,7 @@ public class ReviewService {
                     .giverId(opponentId).reviewType("WORKER").jobId(registerReview.getJobId())
                     .build());
 
+            alarmTypeEnum = AlarmTypeEnum.REVIEW_FINISHED;
         } else {
             //giver -> worker
             opponentId = applicationDao.getById(registerReview.getApplicationId()).getUserId();
@@ -108,6 +112,7 @@ public class ReviewService {
                     .starRating(registerReview.getStartRating())
                     .giverId(userId).reviewType("GIVER").jobId(registerReview.getJobId())
                     .build());
+            alarmTypeEnum = AlarmTypeEnum.REVIEW_DONE;
         }
 
         // 테이블하나 더 만들어서 해당 정보를 저장하는 테이블하나 해당 정보를 저장하여 보관하는 테이블하나.
@@ -159,6 +164,10 @@ public class ReviewService {
                 }, () -> {
                     userRateDao.save(UserRate.builder().userId(setOpponentId).userType(opponentType).rate(setRate).build());
                 });
+
+        User worker = userDao.findById(registerReview.getApplicationId()).orElseThrow();
+        Job job = jobDao.findById(registerReview.getJobId()).orElseThrow();
+        alarmService.sendAlarmType(alarmTypeEnum, worker, job);
 
         return new SuccessResponse(new BasicMeta(true, "리뷰가 성공적으로 저장되었습니다."));
     }
