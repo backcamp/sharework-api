@@ -225,7 +225,7 @@ public class UserService {
         long userId = user.getId();
 
         //giver라면
-        if (user.getUserType().equals("giver")) {
+        if (user.getUserType().equals("givers")) {
             List<Job> jobList = jobDao.getByUserIdAndStatus(userId, JobTypeEnum.COMPLETED.name());
 
             jobList.forEach(job -> {
