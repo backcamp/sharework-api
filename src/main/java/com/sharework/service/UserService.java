@@ -208,8 +208,9 @@ public class UserService {
         Giver responseUser = new Giver(user.getId(), user.getName(), user.getProfileImg());
         int jobCount = jobDao.countByUserId(user.getId());
         Optional<UserRate> userRate = userRateDao.findByUserTypeAndUserId(user.getUserType().toUpperCase(), user.getId());
+        List<TagRank> tagRanks = getTagRank(user);
 
-        final Profile profile = new Profile(responseUser, jobCount, 0, user.getComment());
+        final Profile profile = new Profile(responseUser, jobCount, 0, user.getComment(), tagRanks);
         userRate.ifPresent(userRating -> {
             profile.setRate(userRating.getRate());
         });
@@ -217,6 +218,41 @@ public class UserService {
         return profile;
     }
 
+    public List<TagRank> getTagRank(User user) {
+        List<TagRank> tagRankList = new ArrayList<>();
+        List<Long> jobIdList = new ArrayList<>();
+        List<JobTagRank> jobTagRankList = null;
+        long userId = user.getId();
+
+        //giver라면
+        if (user.getUserType().equals("giver")) {
+            List<Job> jobList = jobDao.getByUserIdAndStatus(userId, JobTypeEnum.COMPLETED.name());
+
+            jobList.forEach(job -> {
+                jobIdList.add(job.getId());
+            });
+
+            jobTagRankList = jobTagDao.findByJobIdCountContentsId(jobIdList);
+
+            jobTagRankList.forEach(jobTagRank -> {
+                tagRankList.add(new TagRank(new JobTagList(jobTagRank.getId(), jobTagRank.getContents()), jobTagRank.getCount()));
+            });
+        } else {
+            List<Application> applicationList = applicationDao.getByUserIdAndStatus(userId, ApplicationTypeEnum.COMPLETED.name());
+
+            applicationList.forEach(application -> {
+                jobIdList.add(application.getJobId());
+            });
+
+            jobTagRankList = jobTagDao.findByJobIdCountContentsId(jobIdList);
+
+            jobTagRankList.forEach(jobTagRank -> {
+                int hour = applicationDao.countByUserIdAndTagContents(userId, jobTagRank.getContents());
+                tagRankList.add(new TagRank(new JobTagList(jobTagRank.getId(), jobTagRank.getContents()), jobTagRank.getCount(), hour));
+            });
+        }
+        return tagRankList;
+    }
 
     @Transactional
     public void updateUser(String accessToken, APIUpdateUser request) {

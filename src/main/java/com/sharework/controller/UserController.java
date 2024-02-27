@@ -71,17 +71,17 @@ public class UserController {
         return ResponseEntity.ok(new SuccessResponse(meta));
     }
 
-    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIGetTagRank.class),
-            @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
-    @GetMapping(value = "/tag", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @ApiOperation(httpMethod = "GET", value = "유저 태그 정보")
-    public ResponseEntity<APIGetTagRank> getTagRankUser(@RequestHeader("access-token") String accessToken) {
-        List<TagRank> tagRankList = userService.getTagRank(accessToken);
-
-        BasicMeta meta = new BasicMeta(true, "");
-        APIGetTagRankPayload apiGetTagRankPayload = new APIGetTagRankPayload(tagRankList);
-        return ResponseEntity.ok(new APIGetTagRank(apiGetTagRankPayload, meta));
-    }
+//    @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = APIGetTagRank.class),
+//            @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
+//    @GetMapping(value = "/tag", produces = {MediaType.APPLICATION_JSON_VALUE})
+//    @ApiOperation(httpMethod = "GET", value = "유저 태그 정보")
+//    public ResponseEntity<APIGetTagRank> getTagRankUser(@RequestHeader("access-token") String accessToken) {
+//        List<TagRank> tagRankList = userService.getTagRank(accessToken);
+//
+//        BasicMeta meta = new BasicMeta(true, "");
+//        APIGetTagRankPayload apiGetTagRankPayload = new APIGetTagRankPayload(tagRankList);
+//        return ResponseEntity.ok(new APIGetTagRank(apiGetTagRankPayload, meta));
+//    }
 
     @ApiResponses({@ApiResponse(code = 200, message = "SUCCESS", response = SuccessResponse.class),
             @ApiResponse(code = 404, message = "NOT FOUND", response = Response.class)})
