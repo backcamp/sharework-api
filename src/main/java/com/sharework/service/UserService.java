@@ -266,46 +266,6 @@ public class UserService {
             user.setComment(request.getComment());
     }
 
-    public List<TagRank> getTagRank(String accessToken) {
-        long userId = identification.getHeadertoken(accessToken);
-
-        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
-
-        List<TagRank> tagRankList = new ArrayList<>();
-        List<Long> jobIdList = new ArrayList<>();
-        List<JobTagRank> jobTagRankList = null;
-
-        //giver라면
-        if (user.getUserType().equals("giver")) {
-            List<Job> jobList = jobDao.getByUserIdAndStatus(userId, JobTypeEnum.COMPLETED.name());
-
-            jobList.forEach(job -> {
-                jobIdList.add(job.getId());
-            });
-
-            jobTagRankList = jobTagDao.findByJobIdCountContentsId(jobIdList);
-
-            jobTagRankList.forEach(jobTagRank -> {
-                tagRankList.add(new TagRank(new JobTagList(jobTagRank.getId(), jobTagRank.getContents()), jobTagRank.getCount()));
-            });
-        } else {
-            List<Application> applicationList = applicationDao.getByUserIdAndStatus(userId, ApplicationTypeEnum.COMPLETED.name());
-
-            applicationList.forEach(application -> {
-                jobIdList.add(application.getJobId());
-            });
-
-            jobTagRankList = jobTagDao.findByJobIdCountContentsId(jobIdList);
-
-            jobTagRankList.forEach(jobTagRank -> {
-                int hour = applicationDao.countByUserIdAndTagContents(userId, jobTagRank.getContents());
-                tagRankList.add(new TagRank(new JobTagList(jobTagRank.getId(), jobTagRank.getContents()), jobTagRank.getCount(), hour));
-            });
-        }
-
-        return tagRankList;
-    }
-
     public boolean insertImg(String accessToken, MultipartFile multipartFile) {
         long userId = identification.getHeadertoken(accessToken);
         userDao.findByIdAndDeleteYn(userId, "N").ifPresent(selectUser -> {
