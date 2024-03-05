@@ -218,6 +218,19 @@ public class UserService {
         return profile;
     }
 
+
+    @Transactional
+    public void updateUser(String accessToken, APIUpdateUser request) {
+        long userId = identification.getHeadertoken(accessToken);
+
+        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
+
+        if (request.getName() != null)
+            user.setName(request.getName());
+        if (request.getComment() != null)
+            user.setComment(request.getComment());
+    }
+
     public List<TagRank> getTagRank(User user) {
         List<TagRank> tagRankList = new ArrayList<>();
         List<Long> jobIdList = new ArrayList<>();
@@ -252,18 +265,6 @@ public class UserService {
             });
         }
         return tagRankList;
-    }
-
-    @Transactional
-    public void updateUser(String accessToken, APIUpdateUser request) {
-        long userId = identification.getHeadertoken(accessToken);
-
-        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
-
-        if (request.getName() != null)
-            user.setName(request.getName());
-        if (request.getComment() != null)
-            user.setComment(request.getComment());
     }
 
     public boolean insertImg(String accessToken, MultipartFile multipartFile) {
