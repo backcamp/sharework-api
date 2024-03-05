@@ -208,8 +208,9 @@ public class UserService {
         Giver responseUser = new Giver(user.getId(), user.getName(), user.getProfileImg());
         int jobCount = jobDao.countByUserId(user.getId());
         Optional<UserRate> userRate = userRateDao.findByUserTypeAndUserId(user.getUserType().toUpperCase(), user.getId());
+        List<TagRank> tagRanks = getTagRank(user);
 
-        final Profile profile = new Profile(responseUser, jobCount, 0, user.getComment());
+        final Profile profile = new Profile(responseUser, jobCount, 0, user.getComment(), tagRanks);
         userRate.ifPresent(userRating -> {
             profile.setRate(userRating.getRate());
         });
@@ -230,14 +231,11 @@ public class UserService {
             user.setComment(request.getComment());
     }
 
-    public List<TagRank> getTagRank(String accessToken) {
-        long userId = identification.getHeadertoken(accessToken);
-
-        User user = userDao.findByIdAndDeleteYn(userId, "N").orElseThrow();
-
+    public List<TagRank> getTagRank(User user) {
         List<TagRank> tagRankList = new ArrayList<>();
         List<Long> jobIdList = new ArrayList<>();
         List<JobTagRank> jobTagRankList = null;
+        long userId = user.getId();
 
         //giver라면
         if (user.getUserType().equals("giver")) {
@@ -266,7 +264,6 @@ public class UserService {
                 tagRankList.add(new TagRank(new JobTagList(jobTagRank.getId(), jobTagRank.getContents()), jobTagRank.getCount(), hour));
             });
         }
-
         return tagRankList;
     }
 

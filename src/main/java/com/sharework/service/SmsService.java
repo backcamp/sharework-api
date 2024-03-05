@@ -82,7 +82,7 @@ public class SmsService {
         try {
             Claims payload = jwtManager.getPayload(token);
             String payloadVerifiedNumber = payload.get("verifiedNumber").toString(); // Token 내 payload
-            // 중verified_number추출
+            // verified_number추출
             long[] verifiedNumberToEncode = hashidsManager.toDecodeArray(payloadVerifiedNumber); // Array 형태로 해독결과를 얻어냄
             String plainTextVerifiedNumber = Long.toString(verifiedNumberToEncode[0]); // long -> string 변환
             String reqVerifiedNumber = params.get("verifiedNumber"); // 사용자가 입력한 인증번호
